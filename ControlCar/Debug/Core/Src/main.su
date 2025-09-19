@@ -1,0 +1,14 @@
+../Core/Src/main.c:55:6:setServoAngle	24	static
+../Core/Src/main.c:66:6:setMotorSpeed	24	static
+../Core/Src/main.c:92:5:main	80	static
+../Core/Src/main.c:178:6:SystemClock_Config	80	static
+../Core/Src/main.c:219:13:MX_TIM1_Init	96	static
+../Core/Src/main.c:295:13:MX_TIM2_Init	64	static
+../Core/Src/main.c:359:13:MX_TIM3_Init	56	static
+../Core/Src/main.c:405:13:MX_USART2_UART_Init	8	static
+../Core/Src/main.c:435:13:MX_GPIO_Init	48	static
+../Core/Src/main.c:471:6:StartDefaultTask	16	static
+../Core/Src/main.c:525:6:HAL_UART_RxCpltCallback	16	static
+../Core/Src/main.c:550:6:StartTask02	48	static
+../Core/Src/main.c:600:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/main.c:617:6:Error_Handler	4	static
