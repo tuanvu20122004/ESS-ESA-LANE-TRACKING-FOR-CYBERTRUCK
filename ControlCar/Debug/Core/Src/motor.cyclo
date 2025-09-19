@@ -1,0 +1,2 @@
+../Core/Src/motor.c:5:6:Motor_Init	1
+../Core/Src/motor.c:10:6:Motor_SetSpeed	3

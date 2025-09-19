@@ -1,0 +1,2 @@
+../Core/Src/freertos_tasks.c:17:6:StartControlTask	16	static
+../Core/Src/freertos_tasks.c:51:6:StartEncoderTask	40	static
