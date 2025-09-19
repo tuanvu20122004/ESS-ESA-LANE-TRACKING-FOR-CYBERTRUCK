@@ -50,15 +50,14 @@ void StartControlTask(void const * argument)
 
 void StartEncoderTask(void const * argument)
 {
-    char msg[20];
+    char msg[30];
     static uint16_t fake_counter = 0;
 
     for(;;)
     {
         // Giả lập encoder: tăng 10 xung mỗi giây
         fake_counter += 10;
-
-        sprintf(msg, "Fake encoder: %d\r\n", fake_counter);
+        snprintf(msg, sizeof(msg), "Fake encoder: %d\r\n", fake_counter);
         HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), 100);
 
         osDelay(1000);  // Delay 1 giây
