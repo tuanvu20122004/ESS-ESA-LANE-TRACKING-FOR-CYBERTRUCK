@@ -1,2 +1,0 @@
-../Core/Src/encoder.c:6:6:Encoder_Init	16	static
-../Core/Src/encoder.c:11:10:Encoder_GetDelta	16	static
