@@ -1,0 +1,4 @@
+../Core/Src/communication.c:23:6:Send_EncoderData	24	static
+../Core/Src/communication.c:31:6:Parse_Command	120	static
+../Core/Src/communication.c:58:6:HAL_UART_RxCpltCallback	16	static
+../Core/Src/communication.c:77:6:Communication_Task	16	static

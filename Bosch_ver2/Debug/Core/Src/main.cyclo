@@ -1,0 +1,14 @@
+../Core/Src/main.c:56:5:__io_putchar	1
+../Core/Src/main.c:88:5:main	1
+../Core/Src/main.c:181:6:SystemClock_Config	3
+../Core/Src/main.c:228:13:MX_TIM1_Init	8
+../Core/Src/main.c:307:13:MX_TIM2_Init	6
+../Core/Src/main.c:366:13:MX_TIM3_Init	3
+../Core/Src/main.c:415:13:MX_USART1_UART_Init	2
+../Core/Src/main.c:448:13:MX_USART2_UART_Init	2
+../Core/Src/main.c:481:13:MX_GPIO_Init	1
+../Core/Src/main.c:518:6:Commu_function	1
+../Core/Src/main.c:536:6:Motor_Servo_Task_Function	1
+../Core/Src/main.c:554:6:Read_Encoder	1
+../Core/Src/main.c:573:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:591:6:Error_Handler	1
