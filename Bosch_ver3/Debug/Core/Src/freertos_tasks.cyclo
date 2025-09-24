@@ -1,0 +1,2 @@
+../Core/Src/freertos_tasks.c:16:13:Motor_Servo_Task	1
+../Core/Src/freertos_tasks.c:32:6:MX_FREERTOS_Init	1

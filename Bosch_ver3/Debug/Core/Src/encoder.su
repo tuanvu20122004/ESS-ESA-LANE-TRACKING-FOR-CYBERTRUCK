@@ -1,0 +1,2 @@
+../Core/Src/encoder.c:16:7:pulses_to_mps	48	static
+../Core/Src/encoder.c:28:6:Encoder_Task	32	static
