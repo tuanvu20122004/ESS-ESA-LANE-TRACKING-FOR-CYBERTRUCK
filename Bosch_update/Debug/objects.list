@@ -4,6 +4,7 @@
 "./Core/Src/freertos_tasks.o"
 "./Core/Src/main.o"
 "./Core/Src/motor.o"
+"./Core/Src/pid.o"
 "./Core/Src/servo.o"
 "./Core/Src/stm32f4xx_hal_msp.o"
 "./Core/Src/stm32f4xx_hal_timebase_tim.o"

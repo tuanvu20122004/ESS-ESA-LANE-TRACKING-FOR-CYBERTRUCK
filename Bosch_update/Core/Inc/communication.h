@@ -1,16 +1,23 @@
-#ifndef COMMUNICATION_H
-#define COMMUNICATION_H
+#ifndef __COMMUNICATION_H
+#define __COMMUNICATION_H
 
 #include "main.h"
 
-extern int motorSpeed;
-extern int steerAngle;
+// ================================
+// Biến global
+// ================================
+extern int steerAngle;   // góc lái từ Pi
 
+// ================================
+// Khai báo hàm
+// ================================
 void Communication_Task(void const * argument);
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
-
-// ✅ Hàm mới
-void Send_EncoderData(int32_t count, float speed);
 void Parse_Command(char *rxBuffer);
+
+// UART helper
+void UART_Send_IT(const char *msg);// DEBUG
+
+// Feedback gửi về Pi
+void Send_SpeedFeedback(float speed, float setpoint, int pwm);//DEBUG
 
 #endif
