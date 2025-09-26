@@ -115,7 +115,7 @@ void Parse_Command(char *rxBuffer)
 /* ================================
    Feedback gửi về Pi
    ================================ */
-void Send_SpeedFeedback(float speed, float setpoint, int pwm)
+void Send_SpeedFeedback(float setpoint, float speed, int pwm)
 {
     char msg[64];
     snprintf(msg, sizeof(msg), "FB,SET,%.3f,SPD,%.3f,PWM,%d\r\n",

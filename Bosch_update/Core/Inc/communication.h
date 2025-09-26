@@ -2,13 +2,6 @@
 #define __COMMUNICATION_H
 
 #include "main.h"
-
-// ================================
-// Biến global
-// ================================
-extern int steerAngle;   // góc lái từ Pi
-
-// ================================
 // Khai báo hàm
 // ================================
 void Communication_Task(void const * argument);

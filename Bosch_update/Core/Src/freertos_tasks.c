@@ -30,8 +30,8 @@ static void Motor_Servo_Task(void const * argument)
 void MX_FREERTOS_Init(void)
 {
     // Init PID (giới hạn output -255..255 cho Motor_SetSpeed)
-    PID_Init(&pid, 200.0f, 0.0f, 0.0f, -MOTOR_MAX_INPUT, MOTOR_MAX_INPUT);
-    pid.setpoint = 0.3f; // mặc định 0.3 m/s (sẽ được override bởi Pi)
+    PID_Init(&pid, 150.0f, 50.0f, 10.0f, -MOTOR_MAX_INPUT, MOTOR_MAX_INPUT);
+    pid.setpoint = 0.0f; // mặc định 0.3 m/s (sẽ được override bởi Pi)
 
     // Communication task
     osThreadDef(Communication, Communication_Task, osPriorityNormal, 0, 1024);

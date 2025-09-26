@@ -2,62 +2,75 @@
 #include "cmsis_os.h"
 #include "math.h"
 #include "pid.h"
-#include "communication.h"// DEBUG
-volatile int32_t count = 0;
-volatile float speed_pulse_s = 0.0f;   // xung/giây
+#include "communication.h" // DEBUG
+
 volatile uint8_t flag = 0;
-float car_speed_mps = 0.0f;            // tốc độ xe (m/s)
-extern int motorSpeed;               // PWM output cho motor
+float car_speed_mps = 0.0f;            // Tốc độ xe (m/s)
+extern int motorSpeed;                // PWM output cho motor
+uint16_t counterAfter = 0, counterInitial = 0, delta = 0;
 
 extern TIM_HandleTypeDef htim3;
 extern PID_Handle_t pid;               // PID khai báo ở freertos_tasks.c
 
+// Hàm chuyển đổi xung thành tốc độ tuyến tính (m/s)
+float pulses_to_mps(int pulses) {
+    float radius = 0.065f / 2.0f;  // Bán kính bánh xe (m)
+    float gear_ratio = 13.0f / 38.0f;  // Tỷ số bánh răng
+    float pulses_per_rev = 11.0f * 4.0f * 19.0f;  // Số xung mỗi vòng quay
+    float time_interval = 0.01f;  // Thời gian mỗi chu kỳ (s)
+
+    float wheel_rps = ((pulses / pulses_per_rev) / time_interval) * gear_ratio;
+    float speed = wheel_rps * (2.0f * M_PI * radius);
+
+    return speed;
+}
+
 void Encoder_Task(void const * argument)
 {
-    int32_t last_count = 0, delta = 0;
+    // Khởi động encoder
     HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
-    TickType_t lastWakeTime = osKernelSysTick();
+    //TickType_t lastWakeTime = osKernelSysTick();
 
     for(;;)
-    {
-        // Đọc giá trị counter
-        count = (int32_t)__HAL_TIM_GET_COUNTER(&htim3);
-        delta = (count - last_count);
+    	{
+    		  counterAfter = __HAL_TIM_GET_COUNTER(&htim3);
+    		  if (__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3))
+    	      {
+    			  if(counterAfter > counterInitial)
+    			  {
+    			  	  delta = 65535 - counterAfter + counterInitial;
+    			  }
+    			  else if (counterAfter <= counterInitial)
+    			  {
+    			  	  delta = counterInitial - counterAfter;
+    			  }
+    	      }
+    		  else
+    		  {
+    			  if(counterAfter >= counterInitial)
+    			  {
+    				  delta = counterAfter - counterInitial;
+    			  }
+    			  else if (counterAfter < counterInitial)
+    			  {
+    				  delta = (65535 - counterInitial) + counterAfter + 1;
+    			  }
+    		  }
 
-        // Xử lý tràn counter
-        const int32_t halfPeriod = (int32_t)(htim3.Init.Period / 2);
-        const int32_t maxCount   = (int32_t)(htim3.Init.Period + 1);
-
-        if(delta > halfPeriod) {
-            delta -= maxCount;
-        } else if(delta < -halfPeriod) {
-            delta += maxCount;
-        }
-
-        // ====== Tính vận tốc ======
-        // pulses per second
-        speed_pulse_s = ((float)delta * 1000.0f) / (float)SAMPLE_MS;
-
-        // motor revolutions per second
-        float motor_rps = speed_pulse_s / PULSES_PER_REV;
-
-        // wheel revolutions per second (sau hộp số)
-        float wheel_rps = motor_rps * GEAR_RATIO;
-
-        // linear speed (m/s)
-        car_speed_mps = wheel_rps * 2.0f * (float)M_PI * WHEEL_RADIUS_M;
-
+        car_speed_mps = pulses_to_mps(delta);
         // ====== PID Control ======
         float dt = SAMPLE_TIME_S;
         float output = PID_Update(&pid, car_speed_mps, dt);
-        motorSpeed = (int)output; // lưu lại để Motor_Servo_Task dùng
+        motorSpeed = (int)output;  // Lưu lại để Motor_Servo_Task dùng
+
         // Gửi feedback trực tiếp về Pi
-        Send_SpeedFeedback(car_speed_mps, pid.setpoint, motorSpeed);// DEBUG
+        Send_SpeedFeedback(pid.setpoint, car_speed_mps, motorSpeed);  // DEBUG
+
         // Báo có dữ liệu mới
         flag = 1;
-        last_count = count;
+        counterInitial = counterAfter;
 
         // Delay đúng chu kỳ
-        osDelayUntil(&lastWakeTime, SAMPLE_MS);
+        osDelay(10);
     }
 }
