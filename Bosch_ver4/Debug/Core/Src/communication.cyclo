@@ -1,0 +1,9 @@
+../Core/Src/communication.c:19:6:communication_init	1
+../Core/Src/communication.c:54:20:RingBuffer_Put	2
+../Core/Src/communication.c:62:19:RingBuffer_Get	2
+../Core/Src/communication.c:72:6:UART_Send_IT	3
+../Core/Src/communication.c:86:6:HAL_UART_TxCpltCallback	3
+../Core/Src/communication.c:101:6:HAL_UART_RxCpltCallback	2
+../Core/Src/communication.c:112:6:Parse_Command	3
+../Core/Src/communication.c:130:6:Send_SpeedFeedback	1
+../Core/Src/communication.c:141:6:Communication_Task	4

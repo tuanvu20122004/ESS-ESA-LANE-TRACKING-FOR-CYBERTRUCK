@@ -1,0 +1,3 @@
+../Core/Src/encoder.c:20:6:encoder_init	1
+../Core/Src/encoder.c:28:7:pulses_to_mps	1
+../Core/Src/encoder.c:40:6:Encoder_Task	6

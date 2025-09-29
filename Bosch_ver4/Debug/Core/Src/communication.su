@@ -1,0 +1,9 @@
+../Core/Src/communication.c:19:6:communication_init	24	static
+../Core/Src/communication.c:54:20:RingBuffer_Put	24	static
+../Core/Src/communication.c:62:19:RingBuffer_Get	16	static
+../Core/Src/communication.c:72:6:UART_Send_IT	32	static
+../Core/Src/communication.c:86:6:HAL_UART_TxCpltCallback	24	static
+../Core/Src/communication.c:101:6:HAL_UART_RxCpltCallback	16	static
+../Core/Src/communication.c:112:6:Parse_Command	24	static
+../Core/Src/communication.c:130:6:Send_SpeedFeedback	120	static
+../Core/Src/communication.c:141:6:Communication_Task	24	static
