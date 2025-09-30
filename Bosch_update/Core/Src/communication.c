@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "pid.h"
 
 // UART handle
 extern UART_HandleTypeDef huart2;
@@ -11,13 +10,13 @@ extern UART_HandleTypeDef huart2;
 // PID handle được khai báo ở freertos_tasks.c
 extern PID_Handle_t pid;
 extern int steerAngle;   // góc lái từ Pi
-
+extern int motorSpeed; // PWM de test PID
 uint8_t rxByte;
 
 /* ================================
    Ring Buffer RX
    ================================ */
-#define RX_BUF_SIZE     64
+#define RX_BUF_SIZE     128
 #define RING_BUF_SIZE   128
 #define TX_QUEUE_SIZE   4
 
@@ -100,29 +99,36 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 void Parse_Command(char *rxBuffer)
 {
     if (strncmp(rxBuffer, "CMD", 3) == 0) {
-        float spd;  // vận tốc m/s
-        int ang;    // góc lái
+        float spd;
+        int ang;
+        //int pwm;
         if (sscanf(rxBuffer, "CMD,%f,%d", &spd, &ang) == 2) {
-            // Gán setpoint trực tiếp (m/s)
             pid.setpoint = spd;
-
-            // Cập nhật góc lái
             steerAngle = ang;
         }
+        /*if(sscanf(rxBuffer, "CMD,%d,%d", &pwm, &ang) == 2){
+        	motorSpeed = pwm;
+        	steerAngle = ang;
+        }*/
     }
 }
 
 /* ================================
-   Feedback gửi về Pi
+   Feedback gửi về Pi(Test PID)
    ================================ */
-void Send_SpeedFeedback(float setpoint, float speed, int pwm)
+void Send_SpeedFeedback(float setpoint, float speed)
 {
     char msg[64];
-    snprintf(msg, sizeof(msg), "FB,SET,%.3f,SPD,%.3f,PWM,%d\r\n",
-             setpoint, speed, pwm);
+    snprintf(msg, sizeof(msg), "FB,SET,%.3f,SPD,%.3f\r\n", setpoint, speed);
     UART_Send_IT(msg);
 }
 
+void Send_PWM_Feedback(uint16_t pwm, float speed)
+{
+  char msg[64];
+  snprintf(msg, sizeof(msg), "FB,PWM,%d,SPD,%.3f\r\n", pwm, speed);
+  UART_Send_IT(msg);
+}
 /* ================================
    Communication Task
    ================================ */

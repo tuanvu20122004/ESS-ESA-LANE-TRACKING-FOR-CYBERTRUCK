@@ -1,76 +1,51 @@
+// encoder.c
 #include "encoder.h"
 #include "cmsis_os.h"
-#include "math.h"
-#include "pid.h"
-#include "communication.h" // DEBUG
-
-volatile uint8_t flag = 0;
-float car_speed_mps = 0.0f;            // Tốc độ xe (m/s)
-extern int motorSpeed;                // PWM output cho motor
-uint16_t counterAfter = 0, counterInitial = 0, delta = 0;
 
 extern TIM_HandleTypeDef htim3;
-extern PID_Handle_t pid;               // PID khai báo ở freertos_tasks.c
+extern PID_Handle_t pid;
+extern int motorSpeed;
 
-// Hàm chuyển đổi xung thành tốc độ tuyến tính (m/s)
+volatile uint8_t flag = 0;
+float car_speed_mps = 0.0f;
+
 float pulses_to_mps(int pulses) {
-    float radius = 0.065f / 2.0f;  // Bán kính bánh xe (m)
-    float gear_ratio = 13.0f / 38.0f;  // Tỷ số bánh răng
-    float pulses_per_rev = 11.0f * 4.0f * 19.0f;  // Số xung mỗi vòng quay
-    float time_interval = 0.01f;  // Thời gian mỗi chu kỳ (s)
-
-    float wheel_rps = ((pulses / pulses_per_rev) / time_interval) * gear_ratio;
-    float speed = wheel_rps * (2.0f * M_PI * radius);
-
-    return speed;
+    const float rev_motor   = ((float)pulses) / PULSES_PER_REV;       // vòng motor trong Δt
+    const float rps_motor   = rev_motor / SAMPLE_TIME_S;              // rps motor
+    const float rps_wheel   = rps_motor * GEAR_RATIO;                 // rps bánh
+    const float speed_mps   = rps_wheel * (2.0f * M_PI * WHEEL_RADIUS_M);
+    return speed_mps;
 }
 
-void Encoder_Task(void const * argument)
+void Encoder_Task(void const *argument)
 {
-    // Khởi động encoder
+    // Bật encoder & đọc mốc ban đầu
     HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
-    //TickType_t lastWakeTime = osKernelSysTick();
+    uint16_t counterInitial = __HAL_TIM_GET_COUNTER(&htim3);
 
-    for(;;)
-    	{
-    		  counterAfter = __HAL_TIM_GET_COUNTER(&htim3);
-    		  if (__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3))
-    	      {
-    			  if(counterAfter > counterInitial)
-    			  {
-    			  	  delta = 65535 - counterAfter + counterInitial;
-    			  }
-    			  else if (counterAfter <= counterInitial)
-    			  {
-    			  	  delta = counterInitial - counterAfter;
-    			  }
-    	      }
-    		  else
-    		  {
-    			  if(counterAfter >= counterInitial)
-    			  {
-    				  delta = counterAfter - counterInitial;
-    			  }
-    			  else if (counterAfter < counterInitial)
-    			  {
-    				  delta = (65535 - counterInitial) + counterAfter + 1;
-    			  }
-    		  }
+    for (;;)
+    {
+        // Đọc giá trị hiện tại
+        uint16_t counterAfter = __HAL_TIM_GET_COUNTER(&htim3);
 
-        car_speed_mps = pulses_to_mps(delta);
-        // ====== PID Control ======
-        float dt = SAMPLE_TIME_S;
-        float output = PID_Update(&pid, car_speed_mps, dt);
-        motorSpeed = (int)output;  // Lưu lại để Motor_Servo_Task dùng
+        // Chênh lệch có dấu kiểu 16-bit tự xử lý wrap-around 0..65535
+        int16_t diff = (int16_t)((int32_t)counterAfter - (int32_t)counterInitial);
 
-        // Gửi feedback trực tiếp về Pi
-        Send_SpeedFeedback(pid.setpoint, car_speed_mps, motorSpeed);  // DEBUG
+        // Đổi xung → m/s (có dấu)
+        car_speed_mps = pulses_to_mps((int)diff);
 
-        // Báo có dữ liệu mới
+        // PID control
+        float output = PID_Update(&pid, car_speed_mps, SAMPLE_TIME_S);
+        motorSpeed = (uint16_t)output;
+
+        // Feedback (tùy mục đích debug/giám sát)
+        Send_SpeedFeedback(pid.setpoint, car_speed_mps);
+        //Send_PWM_Feedback(motorSpeed, car_speed_mps);
+        // Báo có dữ liệu mới & cập nhật mốc
         flag = 1;
         counterInitial = counterAfter;
 
         // Delay đúng chu kỳ
-        osDelay(10);
+        osDelay(SAMPLE_MS);
     }
 }

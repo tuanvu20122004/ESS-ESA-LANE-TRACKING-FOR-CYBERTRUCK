@@ -8,9 +8,6 @@ int motorSpeed = 0;   // PID output (PWM duty)
 int steerAngle = 0;   // Servo angle từ Pi
 PID_Handle_t pid;     // PID controller
 
-/* ================================
-   Motor + Servo Task
-   ================================ */
 static void Motor_Servo_Task(void const * argument)
 {
     // Enable cầu H
@@ -24,15 +21,21 @@ static void Motor_Servo_Task(void const * argument)
     }
 }
 
-/* ================================
-   FreeRTOS Init
-   ================================ */
+// FreeRTOS Init
 void MX_FREERTOS_Init(void)
 {
-    // Init PID (giới hạn output -255..255 cho Motor_SetSpeed)
-    PID_Init(&pid, 150.0f, 50.0f, 10.0f, -MOTOR_MAX_INPUT, MOTOR_MAX_INPUT);
-    pid.setpoint = 0.0f; // mặc định 0.3 m/s (sẽ được override bởi Pi)
+    // ====== PID gains (tạm) ======
+    const float Kp = 50000.0f;
+    const float Ki =  2000.0f;
+    const float Kd =  2000.0f;
+    const float Kf =  20000.0f;
 
+    const float i_band = (0.5f * (float)MOTOR_MAX_INPUT) / Ki;
+
+    // PID_Init mới: (Kp, Ki, Kd, Kf, out_min, out_max, i_min, i_max)
+    PID_Init(&pid, Kp, Ki, Kd, Kf, 0.0f, (float)MOTOR_MAX_INPUT,-i_band, i_band);
+    // Set setpoint (m/s)
+    PID_SetSetpoint(&pid, 0.3f);
     // Communication task
     osThreadDef(Communication, Communication_Task, osPriorityNormal, 0, 1024);
     CommunicationHandle = osThreadCreate(osThread(Communication), NULL);
@@ -41,7 +44,8 @@ void MX_FREERTOS_Init(void)
     osThreadDef(Motor_Servo_Tas, Motor_Servo_Task, osPriorityNormal, 0, 512);
     Motor_Servo_TasHandle = osThreadCreate(osThread(Motor_Servo_Tas), NULL);
 
-    // Encoder task
+    // Encoder task (PID_Update được gọi ở đây với dt = SAMPLE_TIME_S)
     osThreadDef(Re_Encoder_Task, Encoder_Task, osPriorityNormal, 0, 512);
     Re_Encoder_TaskHandle = osThreadCreate(osThread(Re_Encoder_Task), NULL);
 }
+
