@@ -1,0 +1,26 @@
+[
+{
+  "directory": "D:/OpenCV_lib/ObjectDetection/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/cv_core.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\cv_core.dir\\src\\LaneDetector.cpp.obj -c D:\\OpenCV_lib\\ObjectDetection\\src\\LaneDetector.cpp",
+  "file": "D:/OpenCV_lib/ObjectDetection/src/LaneDetector.cpp",
+  "output": "CMakeFiles/cv_core.dir/src/LaneDetector.cpp.obj"
+},
+{
+  "directory": "D:/OpenCV_lib/ObjectDetection/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/app1.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\app1.dir\\main.cpp.obj -c D:\\OpenCV_lib\\ObjectDetection\\main.cpp",
+  "file": "D:/OpenCV_lib/ObjectDetection/main.cpp",
+  "output": "CMakeFiles/app1.dir/main.cpp.obj"
+},
+{
+  "directory": "D:/OpenCV_lib/ObjectDetection/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/app2.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\app2.dir\\main2.cpp.obj -c D:\\OpenCV_lib\\ObjectDetection\\main2.cpp",
+  "file": "D:/OpenCV_lib/ObjectDetection/main2.cpp",
+  "output": "CMakeFiles/app2.dir/main2.cpp.obj"
+},
+{
+  "directory": "D:/OpenCV_lib/ObjectDetection/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/app3.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\app3.dir\\main3.cpp.obj -c D:\\OpenCV_lib\\ObjectDetection\\main3.cpp",
+  "file": "D:/OpenCV_lib/ObjectDetection/main3.cpp",
+  "output": "CMakeFiles/app3.dir/main3.cpp.obj"
+}
+]

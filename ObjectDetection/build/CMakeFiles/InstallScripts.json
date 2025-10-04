@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/OpenCV_lib/ObjectDetection/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

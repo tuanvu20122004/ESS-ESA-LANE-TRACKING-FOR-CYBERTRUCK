@@ -1,0 +1,6 @@
+D:/OpenCV_lib/ObjectDetection/build/CMakeFiles/cv_core.dir
+D:/OpenCV_lib/ObjectDetection/build/CMakeFiles/app1.dir
+D:/OpenCV_lib/ObjectDetection/build/CMakeFiles/app2.dir
+D:/OpenCV_lib/ObjectDetection/build/CMakeFiles/app3.dir
+D:/OpenCV_lib/ObjectDetection/build/CMakeFiles/edit_cache.dir
+D:/OpenCV_lib/ObjectDetection/build/CMakeFiles/rebuild_cache.dir
