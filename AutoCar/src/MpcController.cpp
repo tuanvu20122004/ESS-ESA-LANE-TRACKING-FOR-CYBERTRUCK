@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <cmath>
 
-// lưu kích thước lần trước (dùng để so sánh khi cần reinit toàn bộ solver)
 static int prev_z_dim = -1;
 static int prev_constraint_dim = -1;
 
@@ -62,7 +61,6 @@ void MpcController::init(float Q1_weight, float Q2_weight, float R_weight) {
 
     buildMpcMatrices(0.3f);
 
-    // chỉ cấu hình mặc định (các cài đặt solver) — KHÔNG init solver hoàn chỉnh ở đây
     if (!solver_) solver_ = std::make_unique<OsqpEigen::Solver>();
     solver_->settings()->setVerbosity(false);
     solver_->settings()->setWarmStart(true);
@@ -70,7 +68,6 @@ void MpcController::init(float Q1_weight, float Q2_weight, float R_weight) {
     solver_->settings()->setAbsoluteTolerance(1e-4);
     solver_->settings()->setRelativeTolerance(1e-4);
 
-    // lưu ý: setNumberOfVariables / setNumberOfConstraints sẽ được gọi ở solveQP()
     initialized_ = true;
     std::cout << "[MPC] Controller initialized successfully" << std::endl;
 
@@ -213,9 +210,7 @@ void MpcController::debugMatrices() {
     Eigen::VectorXd lb = beq;
     Eigen::VectorXd ub = beq;
 
-    // Nếu solver chưa init hoặc kích thước thay đổi => tạo và init hoàn chỉnh
     if (!solver_initialized_ || prev_z_dim != z_dim || prev_constraint_dim != constraint_dim) {
-        // (Re)create solver
         solver_.reset(new OsqpEigen::Solver());
 
         // settings
@@ -270,8 +265,6 @@ void MpcController::debugMatrices() {
             return 0.0f;
         }
         if (!solver_->updateLinearConstraintsMatrix(Aeq_sparse)) {
-            // một số phiên bản OSQP-Eigen không có updateLinearConstraintsMatrix;
-            // nếu không có, ta phải reinit solver. Thử fallback:
             std::cerr << "[MPC] updateLinearConstraintsMatrix failed — reinitializing solver!" << std::endl;
             solver_initialized_ = false;
             return solveQP(x0, v_k); // gọi lại để reinit
@@ -314,10 +307,7 @@ float MpcController::computeSteeringAngle(const MpcState& state, float velocity)
     static float cached_velocity = -1.0f;
     if (std::abs(velocity - cached_velocity) > 0.01f) {
         buildMpcMatrices(velocity);
-        // Khi cập nhật ma trận cấu trúc H_, AX_, BU_, BV_, ta bắt buộc reinit solver kích thước
-        // hoặc chí ít báo rằng cần set lại dữ liệu (solveQP sẽ tự reinit khi cần)
         cached_velocity = velocity;
-        // đảm bảo next call vào solveQP sẽ reinit (nếu kích thước thay đổi)
         prev_z_dim = -1;
         prev_constraint_dim = -1;
     }
