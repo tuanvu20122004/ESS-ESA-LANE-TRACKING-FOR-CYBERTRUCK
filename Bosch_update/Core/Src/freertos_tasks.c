@@ -25,17 +25,23 @@ static void Motor_Servo_Task(void const * argument)
 void MX_FREERTOS_Init(void)
 {
     // ====== PID gains (tạm) ======
-    const float Kp = 50000.0f;
-    const float Ki =  2000.0f;
-    const float Kd =  2000.0f;
-    const float Kf =  20000.0f;
+    //const float Kp = 44181.0f;
+    //const float Ki =  820822.0f;
+    //const float Kd =  0.0f;
+    //const float Kf =  22599.0f;
+
+    const float Kp = 63099.8111f;
+    const float Ki =  1237862.3732f;
+    const float Kd =  124.457f;
+    const float Kf =  22599.0f;
+
 
     const float i_band = (0.5f * (float)MOTOR_MAX_INPUT) / Ki;
 
     // PID_Init mới: (Kp, Ki, Kd, Kf, out_min, out_max, i_min, i_max)
     PID_Init(&pid, Kp, Ki, Kd, Kf, 0.0f, (float)MOTOR_MAX_INPUT,-i_band, i_band);
     // Set setpoint (m/s)
-    PID_SetSetpoint(&pid, 0.3f);
+    PID_SetSetpoint(&pid, 0.0f);
     // Communication task
     osThreadDef(Communication, Communication_Task, osPriorityNormal, 0, 1024);
     CommunicationHandle = osThreadCreate(osThread(Communication), NULL);

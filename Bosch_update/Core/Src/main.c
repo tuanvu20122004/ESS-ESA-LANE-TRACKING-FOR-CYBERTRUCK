@@ -19,7 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include "freertos_tasks.h"   // ✅ Thêm file quản lý task
+#include "freertos_tasks.h"   // file quan ly cac task == file logic
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim1;
@@ -30,12 +30,6 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-// log debug qua UART1
-/*int __io_putchar(int ch)
-{
-    HAL_UART_Transmit(&huart2, (uint8_t*)&ch, 1, 100);
-    return ch;
-}*/
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -74,7 +68,7 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
   /* USER CODE END Init */
-
+  Servo_SetAngle(90);
   /* Create FreeRTOS tasks */
   MX_FREERTOS_Init();
 

@@ -1,35 +1,4 @@
 // pid.h
-/*#ifndef __PID_H
-#define __PID_H
-
-#include "main.h"
-
-typedef struct {
-    float Kp;
-    float Ki;
-    float Kd;
-
-    float setpoint;       // giá trị mong muốn
-    float integral;       // tích phân (đã kẹp theo i_min/i_max)
-    float prev_measure;   // y(k-1) để tính đạo hàm trên measurement
-
-    float out_min;        // giới hạn đầu ra (PWM, v.v.)
-    float out_max;
-
-    float i_min;          // giới hạn riêng cho integral (đơn vị: "đầu vào" của Ki)
-    float i_max;
-} PID_Handle_t;
-
-// Khởi tạo PID (có biên tích phân riêng)
-void PID_Init(PID_Handle_t *pid,
-              float Kp, float Ki, float Kd,
-              float out_min, float out_max,
-              float i_min, float i_max);
-
-// Cập nhật PID, trả về đầu ra (đã kẹp)
-float PID_Update(PID_Handle_t *pid, float measurement, float dt);
-
-#endif*/
 #ifndef __PID_H
 #define __PID_H
 
