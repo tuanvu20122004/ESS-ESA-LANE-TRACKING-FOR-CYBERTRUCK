@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
         std::cout << "[DEBUG] State: lateral=" << state.lateral_deviation 
           << ", yaw=" << state.yaw_angle << std::endl;
         float steering_angle = mpc.computeSteeringAngle(state, desired_velocity);
-        int servo_angle = 80 + static_cast<int>(steering_angle);
+        int servo_angle = 93 + static_cast<int>(steering_angle);
         
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
