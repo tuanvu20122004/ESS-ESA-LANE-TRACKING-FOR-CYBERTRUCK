@@ -1,0 +1,44 @@
+[
+{
+  "directory": "/home/tuandevvtx/Documents/MpcControl/build",
+  "command": "/usr/bin/g++ -DOSQP_EIGEN_OSQP_IS_V1 -DOSQP_EIGEN_OSQP_IS_V1_FINAL -DOSQP_SHARED_LIB -I/home/tuandevvtx/Documents/MpcControl/include -isystem /usr/include/opencv4 -isystem /usr/include/eigen3 -isystem /usr/local/include/osqp -g -std=gnu++17 -o CMakeFiles/lane_keeping_mpc.dir/src/main.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/main.cpp",
+  "file": "/home/tuandevvtx/Documents/MpcControl/src/main.cpp",
+  "output": "CMakeFiles/lane_keeping_mpc.dir/src/main.cpp.o"
+},
+{
+  "directory": "/home/tuandevvtx/Documents/MpcControl/build",
+  "command": "/usr/bin/g++ -DOSQP_EIGEN_OSQP_IS_V1 -DOSQP_EIGEN_OSQP_IS_V1_FINAL -DOSQP_SHARED_LIB -I/home/tuandevvtx/Documents/MpcControl/include -isystem /usr/include/opencv4 -isystem /usr/include/eigen3 -isystem /usr/local/include/osqp -g -std=gnu++17 -o CMakeFiles/lane_keeping_mpc.dir/src/LaneDetector.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/LaneDetector.cpp",
+  "file": "/home/tuandevvtx/Documents/MpcControl/src/LaneDetector.cpp",
+  "output": "CMakeFiles/lane_keeping_mpc.dir/src/LaneDetector.cpp.o"
+},
+{
+  "directory": "/home/tuandevvtx/Documents/MpcControl/build",
+  "command": "/usr/bin/g++ -DOSQP_EIGEN_OSQP_IS_V1 -DOSQP_EIGEN_OSQP_IS_V1_FINAL -DOSQP_SHARED_LIB -I/home/tuandevvtx/Documents/MpcControl/include -isystem /usr/include/opencv4 -isystem /usr/include/eigen3 -isystem /usr/local/include/osqp -g -std=gnu++17 -o CMakeFiles/lane_keeping_mpc.dir/src/ComputeMpc.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/ComputeMpc.cpp",
+  "file": "/home/tuandevvtx/Documents/MpcControl/src/ComputeMpc.cpp",
+  "output": "CMakeFiles/lane_keeping_mpc.dir/src/ComputeMpc.cpp.o"
+},
+{
+  "directory": "/home/tuandevvtx/Documents/MpcControl/build",
+  "command": "/usr/bin/g++ -DOSQP_EIGEN_OSQP_IS_V1 -DOSQP_EIGEN_OSQP_IS_V1_FINAL -DOSQP_SHARED_LIB -I/home/tuandevvtx/Documents/MpcControl/include -isystem /usr/include/opencv4 -isystem /usr/include/eigen3 -isystem /usr/local/include/osqp -g -std=gnu++17 -o CMakeFiles/lane_keeping_mpc.dir/src/MpcController.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/MpcController.cpp",
+  "file": "/home/tuandevvtx/Documents/MpcControl/src/MpcController.cpp",
+  "output": "CMakeFiles/lane_keeping_mpc.dir/src/MpcController.cpp.o"
+},
+{
+  "directory": "/home/tuandevvtx/Documents/MpcControl/build",
+  "command": "/usr/bin/g++ -DOSQP_EIGEN_OSQP_IS_V1 -DOSQP_EIGEN_OSQP_IS_V1_FINAL -DOSQP_SHARED_LIB -I/home/tuandevvtx/Documents/MpcControl/include -isystem /usr/include/opencv4 -isystem /usr/include/eigen3 -isystem /usr/local/include/osqp -g -std=gnu++17 -o CMakeFiles/lane_keeping_mpc.dir/src/communication.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/communication.cpp",
+  "file": "/home/tuandevvtx/Documents/MpcControl/src/communication.cpp",
+  "output": "CMakeFiles/lane_keeping_mpc.dir/src/communication.cpp.o"
+},
+{
+  "directory": "/home/tuandevvtx/Documents/MpcControl/build",
+  "command": "/usr/bin/g++ -DOSQP_EIGEN_OSQP_IS_V1 -DOSQP_EIGEN_OSQP_IS_V1_FINAL -DOSQP_SHARED_LIB -I/home/tuandevvtx/Documents/MpcControl/include -isystem /usr/include/opencv4 -isystem /usr/include/eigen3 -isystem /usr/local/include/osqp -g -std=gnu++17 -o CMakeFiles/lane_keeping_mpc.dir/src/logger.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/logger.cpp",
+  "file": "/home/tuandevvtx/Documents/MpcControl/src/logger.cpp",
+  "output": "CMakeFiles/lane_keeping_mpc.dir/src/logger.cpp.o"
+},
+{
+  "directory": "/home/tuandevvtx/Documents/MpcControl/build",
+  "command": "/usr/bin/g++ -DOSQP_EIGEN_OSQP_IS_V1 -DOSQP_EIGEN_OSQP_IS_V1_FINAL -DOSQP_SHARED_LIB -I/home/tuandevvtx/Documents/MpcControl/include -isystem /usr/include/opencv4 -isystem /usr/include/eigen3 -isystem /usr/local/include/osqp -g -std=gnu++17 -o CMakeFiles/lane_keeping_mpc.dir/src/logic.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/logic.cpp",
+  "file": "/home/tuandevvtx/Documents/MpcControl/src/logic.cpp",
+  "output": "CMakeFiles/lane_keeping_mpc.dir/src/logic.cpp.o"
+}
+]
