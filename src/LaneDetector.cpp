@@ -2,10 +2,28 @@
 
 LaneDetector::LaneDetector(const std::string& videoPath, int width, int height)
     : width(width), height(height) {
-    cap.open(videoPath);
-    if (!cap.isOpened()) {
-        std::cerr << "Không mở được video hoặc camera!" << std::endl;
+    if (videoPath.find("/dev/") != std::string::npos) {
+        int capture_w = 1280, capture_h = 720;
+        int output_w = 640, output_h = 480;
+        int framerate = 30;
+
+        std::string pipeline =
+            "libcamerasrc ! "
+            "video/x-raw,width=" + std::to_string(capture_w) +
+            ",height=" + std::to_string(capture_h) +
+            ",framerate=" + std::to_string(framerate) + "/1,format=NV12 ! "
+            "videoconvert ! video/x-raw,format=BGR ! appsink";
+
+        std::cout << "[CAMERA] Using GStreamer pipeline:\n" << pipeline << "\n";
+        cap.open(pipeline, cv::CAP_GSTREAMER);
+    }
+     else if(!cap.isOpened())
+    {
+        std::cerr << " Cannot open: " << videoPath << std::endl;
         exit(-1);
+    }
+    else {
+    cap.open(videoPath);
     }
 }
 

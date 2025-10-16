@@ -43,7 +43,9 @@ void Communication::sendCommands(float speed, int angle) {
     oss << "CMD," << speed << "," << angle << "\r\n";
 
     try {
+        serial_port_.SetSerialPortBlockingStatus(false);
         serial_port_.Write(oss.str());
+        serial_port_.FlushOutputBuffer();
         std::cout << "[TX] " << oss.str();
     } catch (const std::exception& e) {
         std::cerr << "UART write error: " << e.what() << "\n";

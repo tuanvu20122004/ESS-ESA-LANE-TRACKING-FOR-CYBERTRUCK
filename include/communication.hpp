@@ -7,7 +7,7 @@
 
 class Communication {
 public:
-    Communication(const std::string& port = "/dev/ttyUSB0", unsigned int baudrate = 115200);
+    Communication(const std::string& port = "/dev/ttyACM0", unsigned int baudrate = 115200);
     ~Communication();
 
     void sendCommands(float speed, int angle);
