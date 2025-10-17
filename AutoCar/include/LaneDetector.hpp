@@ -15,6 +15,10 @@ private:
     ComputeMpc mpc_computer_;
     MpcState current_state_;
 
+    float current_steering_cmd_;
+    int current_servo_angle_;
+    bool has_steering_info_;
+
 public:
     LaneDetector(const std::string& videoPath, int width = 640, int height = 480);
     ~LaneDetector();
@@ -27,6 +31,13 @@ public:
     
     // Lấy state hiện tại
     MpcState getMpcState() const { return current_state_; }
+
+    // Thêm phương thức để set steering info
+    void setSteeringInfo(float steering_cmd, int servo_angle) {
+        current_steering_cmd_ = steering_cmd;
+        current_servo_angle_ = servo_angle;
+        has_steering_info_ = true;
+    }
     
     cv::Mat applyIPM(cv::Mat& frame);
     cv::Mat processMask(const cv::Mat& bird_eye_view);
