@@ -1,6 +1,7 @@
 #include "LaneDetector.hpp"
 
-LaneDetector::LaneDetector(const std::string& videoPath, int width, int height) {
+LaneDetector::LaneDetector(const std::string& videoPath, int width, int height) 
+    : current_steering_cmd_(0.0f), current_servo_angle_(93), has_steering_info_(false) {
     cap.open(videoPath);
     if (!cap.isOpened()) {
         std::cout << "Không mở được video!" << std::endl;
@@ -78,8 +79,8 @@ void LaneDetector::processFrame(cv::Mat& frame) {
     current_state_ = mpc_computer_.computeMpcParameters(centerline, bird_eye_view);
 
     // ========== HIỂN THỊ LÊN FRAME ==========
-    // Tạo một vùng nền đen cho text
-    cv::Rect textBox(10, 10, 400, 110);
+    // Tạo một vùng nền đen cho text (tăng chiều cao để chứa thêm thông tin)
+    cv::Rect textBox(10, 10, 400, 180);
     cv::rectangle(frame_resize, textBox, cv::Scalar(0, 0, 0), -1);
     cv::rectangle(frame_resize, textBox, cv::Scalar(0, 255, 255), 2);
 
@@ -108,6 +109,24 @@ void LaneDetector::processFrame(cv::Mat& frame) {
                    cv::FONT_HERSHEY_SIMPLEX, 
                    0.5, cv::Scalar(0, 255, 255), 1);
         
+        // Hiển thị steering command (góc lái từ MPC)
+        if (has_steering_info_) {
+            std::string text_cmd = "Steering CMD: " + 
+                std::to_string(current_steering_cmd_) + " (deg)";
+            cv::putText(frame_resize, text_cmd, 
+                       cv::Point(20, 110), 
+                       cv::FONT_HERSHEY_SIMPLEX, 
+                       0.5, cv::Scalar(255, 128, 0), 1);
+            
+            // Hiển thị servo angle
+            std::string text_servo = "Servo Angle: " + 
+                std::to_string(current_servo_angle_);
+            cv::putText(frame_resize, text_servo, 
+                       cv::Point(20, 135), 
+                       cv::FONT_HERSHEY_SIMPLEX, 
+                       0.5, cv::Scalar(255, 128, 0), 1);
+        }
+        
     } else {
         cv::putText(frame_resize, "MPC: INVALID", 
                    cv::Point(20, 60), 
@@ -123,7 +142,7 @@ void LaneDetector::processFrame(cv::Mat& frame) {
     else status += "No Lane";
     
     cv::putText(frame_resize, status, 
-               cv::Point(20, 135), 
+               cv::Point(20, 160), 
                cv::FONT_HERSHEY_SIMPLEX, 
                0.5, cv::Scalar(0, 255, 0), 1);
 
