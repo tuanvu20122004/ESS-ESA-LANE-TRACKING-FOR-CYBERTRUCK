@@ -57,6 +57,9 @@ int main(int argc, char* argv[]) {
         float steering_angle = mpc.computeSteeringAngle(state, desired_velocity);
         int servo_angle = 93 + static_cast<int>(steering_angle);
         
+        // Bước 5: Cập nhật steering info vào detector để hiển thị
+        detector.setSteeringInfo(steering_angle, servo_angle);
+        
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         
