@@ -5,21 +5,30 @@
 #include "MpcController.hpp"
 #include "communication.hpp"
 #include "logger.hpp"
+
 #include <opencv2/opencv.hpp>
+#include <atomic>
+#include <mutex>
+#include <string>
 
 class Logic {
 public:
-    Logic(const std::string& videoPath);
+    explicit Logic(const std::string& videoPath);
     void run();
 
 private:
-    bool initCamera(const std::string& source);
+    // Core modules
+    LaneDetector   detector;
+    MpcController  mpc;
+    Communication  comm;
 
-    LaneDetector detector;
-    MpcController mpc;
-    Communication comm;
-    cv::VideoCapture cap;
+    // Control params
     const float desired_velocity = 0.3f;
+
+    // Concurrency
+    std::atomic<bool> running{true};
+    std::mutex        frame_mutex;
+    cv::Mat           latest_frame;
 };
 
-#endif
+#endif // LOGIC_HPP

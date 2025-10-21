@@ -9,21 +9,27 @@ LaneDetector::LaneDetector(const std::string& videoPath, int width, int height)
 
         std::string pipeline =
             "libcamerasrc ! "
-            "video/x-raw,width=" + std::to_string(capture_w) +
-            ",height=" + std::to_string(capture_h) +
-            ",framerate=" + std::to_string(framerate) + "/1,format=NV12 ! "
-            "videoconvert ! video/x-raw,format=BGR ! appsink";
+            "video/x-raw, width=" + std::to_string(capture_w) +
+            ", height=" + std::to_string(capture_h) +
+            ", framerate=" + std::to_string(framerate) +
+            "/1, format=(string)NV12 ! "
+            "videoconvert ! "
+            "video/x-raw, width=" + std::to_string(output_w) +
+            ", height=" + std::to_string(output_h) +
+            ", format=(string)BGRx ! "
+            "videoconvert ! video/x-raw, format=(string)BGR ! appsink";
 
         std::cout << "[CAMERA] Using GStreamer pipeline:\n" << pipeline << "\n";
         cap.open(pipeline, cv::CAP_GSTREAMER);
+    } else {
+        // Nếu không phải /dev/, thì mở file video
+        cap.open(videoPath);
     }
-     else if(!cap.isOpened())
-    {
-        std::cerr << " Cannot open: " << videoPath << std::endl;
+
+    // Kiểm tra sau khi đã mở (đúng logic)
+    if (!cap.isOpened()) {
+        std::cerr << "Cannot open: " << videoPath << std::endl;
         exit(-1);
-    }
-    else {
-    cap.open(videoPath);
     }
 }
 
@@ -156,17 +162,13 @@ cv::Mat LaneDetector::processMask(const cv::Mat& bird_eye_view) {
     return mask;
 }
 
-void LaneDetector::slidingWindow(const cv::Mat& mask,
-                                 std::vector<cv::Point>& left_points,
-                                 std::vector<cv::Point>& right_points,
-                                 cv::Mat& outImg) {
+void LaneDetector::slidingWindow(const cv::Mat& mask, std::vector<cv::Point>& left_points, std::vector<cv::Point>& right_points, cv::Mat& outImg) {
     int nwindows = 15, margin = 60, minpix = 50;
     int height = mask.rows, width = mask.cols;
     int window_height = height / nwindows;
 
     cv::Mat hist;
-    cv::reduce(mask(cv::Rect(0, height/2, width, height/2)),
-               hist, 0, cv::REDUCE_SUM, CV_32S);
+    cv::reduce(mask(cv::Rect(0, height/2, width, height/2)),hist, 0, cv::REDUCE_SUM, CV_32S);
     int midpoint = hist.cols / 2;
     int leftx_base = std::max_element(hist.begin<int>(), hist.begin<int>() + midpoint) - hist.begin<int>();
     int rightx_base = std::max_element(hist.begin<int>() + midpoint, hist.end<int>()) - hist.begin<int>();
@@ -188,12 +190,10 @@ void LaneDetector::slidingWindow(const cv::Mat& mask,
         }
 
         if ((int)good_left.size() > minpix)
-            leftx_current = std::accumulate(good_left.begin(), good_left.end(), 0,
-                                            [](int sum, cv::Point p){ return sum + p.x; }) / good_left.size();
+            leftx_current = std::accumulate(good_left.begin(), good_left.end(), 0, [](int sum, cv::Point p){ return sum + p.x; }) / good_left.size();
 
         if ((int)good_right.size() > minpix)
-            rightx_current = std::accumulate(good_right.begin(), good_right.end(), 0,
-                                             [](int sum, cv::Point p){ return sum + p.x; }) / good_right.size();
+            rightx_current = std::accumulate(good_right.begin(), good_right.end(), 0, [](int sum, cv::Point p){ return sum + p.x; }) / good_right.size();
 
         left_points.insert(left_points.end(), good_left.begin(), good_left.end());
         right_points.insert(right_points.end(), good_right.begin(), good_right.end());
@@ -205,10 +205,7 @@ void LaneDetector::slidingWindow(const cv::Mat& mask,
 
 // ================= Advanced functions =================
 
-void LaneDetector::slidingWindowAdaptive(const cv::Mat& mask,
-                                         std::vector<cv::Point>& lane_points,
-                                         cv::Mat& outImg,
-                                         cv::Vec3f prev_poly) {
+void LaneDetector::slidingWindowAdaptive(const cv::Mat& mask, std::vector<cv::Point>& lane_points, cv::Mat& outImg, cv::Vec3f prev_poly) {
     int nwindows = 15, margin = 60;
     int height = mask.rows;
     int window_height = height / nwindows;
@@ -263,11 +260,7 @@ cv::Vec3f LaneDetector::fitPoly(const std::vector<cv::Point>& points, cv::Mat& o
     return c;
 }
 
-std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left,
-                                                       cv::Vec3f coeff_right,
-                                                       bool has_left,
-                                                       bool has_right,
-                                                       cv::Mat& outImg) {
+std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left, cv::Vec3f coeff_right, bool has_left, bool has_right, cv::Mat& outImg) {
     std::vector<cv::Point> centerline;
     if (outImg.empty()) return centerline;
 

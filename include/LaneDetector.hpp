@@ -28,23 +28,13 @@ private:
     // --- Core functions ---
     cv::Mat applyIPM(cv::Mat& frame);
     cv::Mat processMask(const cv::Mat& bird_eye_view);
-    void slidingWindow(const cv::Mat& mask,
-                       std::vector<cv::Point>& left_points,
-                       std::vector<cv::Point>& right_points,
-                       cv::Mat& outImg);
+    void slidingWindow(const cv::Mat& mask, std::vector<cv::Point>& left_points, std::vector<cv::Point>& right_points, cv::Mat& outImg);
 
     // --- Advanced functions ---
-    void slidingWindowAdaptive(const cv::Mat& mask,
-                               std::vector<cv::Point>& lane_points,
-                               cv::Mat& outImg,
-                               cv::Vec3f prev_poly);
+    void slidingWindowAdaptive(const cv::Mat& mask, std::vector<cv::Point>& lane_points, cv::Mat& outImg, cv::Vec3f prev_poly);
     std::vector<std::vector<cv::Point>> findContoursInMask(const cv::Mat& mask);
     cv::Vec3f fitPoly(const std::vector<cv::Point>& points, cv::Mat& outImg, bool isLeft);
-    std::vector<cv::Point> computeCenterline(cv::Vec3f coeff_left,
-                                             cv::Vec3f coeff_right,
-                                             bool has_left,
-                                             bool has_right,
-                                             cv::Mat& outImg);
+    std::vector<cv::Point> computeCenterline(cv::Vec3f coeff_left, cv::Vec3f coeff_right, bool has_left, bool has_right, cv::Mat& outImg);
     float computeLaneSlope(const cv::Vec3f& coeffs, float y);
 };
 

@@ -18,7 +18,7 @@ Communication::Communication(const std::string& port, unsigned int baudrate) {
             default:
                 serial_port_.SetBaudRate(LibSerial::BaudRate::BAUD_115200);
         }
-
+        serial_port_.SetSerialPortBlockingStatus(false);
         std::cout << "UART connected on " << port
                   << "at " << baudrate << " baud.\n";
     }
@@ -43,10 +43,9 @@ void Communication::sendCommands(float speed, int angle) {
     oss << "CMD," << speed << "," << angle << "\r\n";
 
     try {
-        serial_port_.SetSerialPortBlockingStatus(false);
         serial_port_.Write(oss.str());
-        serial_port_.FlushOutputBuffer();
-        std::cout << "[TX] " << oss.str();
+        //serial_port_.FlushOutputBuffer();
+        //std::cout << "[TX] " << oss.str();
     } catch (const std::exception& e) {
         std::cerr << "UART write error: " << e.what() << "\n";
     }
