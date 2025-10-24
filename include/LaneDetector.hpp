@@ -14,7 +14,9 @@ private:
     int width, height;
     ComputeMpc mpc_computer_;
     MpcState current_state_;
-
+    cv::Mat mask;
+    cv::Mat bird_eye_view;
+    cv::Mat frame_resize;
 public:
     LaneDetector(const std::string& videoPath, int width = 640, int height = 480);
     ~LaneDetector();
@@ -22,8 +24,11 @@ public:
     bool getFrame(cv::Mat& frame);
     bool isOpened() const;
     void processFrame(cv::Mat& frame);
-    MpcState getMpcState() const { return current_state_; }
-
+    //MpcState getMpcState() const { return current_state_; }
+    MpcState getMpcState() const;
+    cv::Mat get_mask() const;
+    cv::Mat get_bird_eye_view() const;
+    cv::Mat get_frame_resize();
 private:
     // --- Core functions ---
     cv::Mat applyIPM(cv::Mat& frame);
