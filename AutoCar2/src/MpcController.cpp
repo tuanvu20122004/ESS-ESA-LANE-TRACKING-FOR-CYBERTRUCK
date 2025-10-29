@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <numeric>
 
-const float DISTANCE_TO_AXLE = 0.15f;  // 15cm tÃ¡Â»Â« Ã„â€˜ÃƒÂ¡y Ã¡ÂºÂ£nh Ã„â€˜Ã¡ÂºÂ¿n trÃ¡Â»Â¥c xe
+const float DISTANCE_TO_AXLE = 0.15f;  // 15cm từ trục bánh xe đến ảnh
 
 ComputeMpc::ComputeMpc(float pixel_per_meter) 
     : pixel_per_meter_(pixel_per_meter),
@@ -11,10 +11,12 @@ ComputeMpc::ComputeMpc(float pixel_per_meter)
 }
 
 void ComputeMpc::setVehiclePosition(float x, float y) {
-    vehicle_x_ = x;
-    vehicle_y_ = y;
+    vehicle_x_ = x; //tọa độ x trong ảnh bird eye view
+    vehicle_y_ = y; //tọa độ y trong ảnh bird eye view
+    // cả 2 được gán giá trị ở dưới hàm computeMpcParameters()
 }
 
+//Fit cho centerline để trả về hệ số tính cho MPC parameters
 cv::Vec3f ComputeMpc::fitCenterlinePoly(const std::vector<cv::Point>& centerline) {
     if (centerline.size() < 3) {
         return cv::Vec3f(0, 0, 0);
@@ -49,10 +51,12 @@ cv::Vec3f ComputeMpc::fitCenterlinePoly(const std::vector<cv::Point>& centerline
     return cv::Vec3f(0, 0, 0);
 }
 
+//Đạo hàm bậc 1
 float ComputeMpc::computeFirstDerivative(const cv::Vec3f& coeffs, float y) {
     return 2.0f * coeffs[0] * y + coeffs[1];
 }
 
+//Đạo hàm bậc 2
 float ComputeMpc::computeSecondDerivative(const cv::Vec3f& coeffs) {
     return 2.0f * coeffs[0];
 }
@@ -83,7 +87,7 @@ std::vector<float> ComputeMpc::computeMultipleCurvatures(const cv::Vec3f& coeffs
 float ComputeMpc::computeLateralDeviation(const cv::Vec3f& coeffs, 
                                           const cv::Mat& birdEyeView) {
     if (vehicle_x_ == 0.0f && vehicle_y_ == 0.0f) {
-        vehicle_x_ = birdEyeView.cols / 2.0f;
+        vehicle_x_ = birdEyeView.cols / 2.0f; 
         vehicle_y_ = birdEyeView.rows - 1.0f;
     }
     
@@ -104,6 +108,7 @@ float ComputeMpc::computeYawAngle(const cv::Vec3f& coeffs, float y) {
     return yaw_angle_rad;
 }
 
+//Hàm tổng hợp chính để tính toán tất cả các thông số MPC từ centerline
 MpcState ComputeMpc::computeMpcParameters(const std::vector<cv::Point>& centerline,
                                           const cv::Mat& birdEyeView) {
     MpcState result;
@@ -115,18 +120,19 @@ MpcState ComputeMpc::computeMpcParameters(const std::vector<cv::Point>& centerli
     
     cv::Vec3f coeffs = fitCenterlinePoly(centerline);
     
+    //Gán giá trị cho vehicle_x_ và vehicle_y_
     if (vehicle_x_ == 0.0f && vehicle_y_ == 0.0f) {
-        vehicle_x_ = birdEyeView.cols / 2.0f;
-        vehicle_y_ = birdEyeView.rows - 1.0f;
+        vehicle_x_ = birdEyeView.cols / 2.0f; // giữa khung hình theo chiều ngang
+        vehicle_y_ = birdEyeView.rows - 1.0f; // đáy khung hình
     }
     
-    // 1. TÃƒÂ­nh curvature vector (10 phÃ¡ÂºÂ§n tÃ¡Â»Â­)
+    // 1. Tính curvature vector (10 phÃ¡ÂºÂ§n tÃ¡Â»Â­)
     result.curvature = computeMultipleCurvatures(coeffs, 10);
     
-    // 2. TÃƒÂ­nh yaw angle
+    // 2. Tính yaw angle
     result.yaw_angle = computeYawAngle(coeffs, vehicle_y_);
     
-    // 3. TÃƒÂ­nh lateral deviation (cÃƒÂ³ bÃƒÂ¹ gÃƒÂ³c lÃƒÂ¡i)
+    // 3. Tính lateral deviation
     float raw_deviation = computeLateralDeviation(coeffs, birdEyeView);
     result.lateral_deviation = raw_deviation - 
                                DISTANCE_TO_AXLE * std::sin(result.yaw_angle);
