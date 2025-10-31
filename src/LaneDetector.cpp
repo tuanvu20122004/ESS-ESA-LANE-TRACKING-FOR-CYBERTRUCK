@@ -64,7 +64,17 @@ bool LaneDetector::isOpened() const {
 }
 
 void LaneDetector::processFrame(cv::Mat& frame) {
-    //cv:: Mat frame_resize;
+    cv::Mat undistorted;
+    cv::Mat cameraMatrix = (cv::Mat_<double>(3,3) <<
+        262.08953333143063, 0.0, 330.77574325128484,
+        0.0, 263.57901348164575, 250.50298224489268,
+        0.0, 0.0, 1.0);
+    cv::Mat distCoeffs = (cv::Mat_<double>(1,5) <<
+        -0.27166331922859776, 0.09924985737514846,
+        -0.0002707688044880526, 0.0006724194580262318,
+        -0.01935517123682299);
+    cv::undistort(frame, undistorted, cameraMatrix, distCoeffs);
+    frame = undistorted.clone();
     cv::resize(frame, frame_resize, cv::Size(width, height));
 
     // 1) Bird-eye view
@@ -167,7 +177,9 @@ cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
     std::vector<cv::Point2f> dst = {
         {0, 0}, {0, (float)height}, {(float)width, 0}, {(float)width, (float)height}
     };
-
+    for(int i=0;i<src.size();i++){
+        cv::circle(frame,src[i],5,cv::Scalar(0,255,0),-1);
+    }
     cv::Mat M = cv::getPerspectiveTransform(src, dst);
     cv::Mat bird_eye;
     cv::warpPerspective(frame, bird_eye, M, cv::Size(width, height));
