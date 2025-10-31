@@ -1,10 +1,11 @@
 #include "LaneDetector.hpp"
+#include <algorithm>
+#include <iostream>
 
-LaneDetector::LaneDetector(const std::string& videoPath, int width, int height) 
-    : current_steering_cmd_(0.0f), current_servo_angle_(93), has_steering_info_(false) {
+LaneDetector::LaneDetector(const std::string& videoPath, int width, int height) {
     cap.open(videoPath);
     if (!cap.isOpened()) {
-        std::cout << "KhÃƒÂ´ng mÃ¡Â»Å¸ Ã„â€˜Ã†Â°Ã¡Â»Â£c video!" << std::endl;
+        std::cout << "Cannot open video!" << std::endl;
         exit(-1);
     }
     this->width = width;
@@ -29,29 +30,29 @@ void LaneDetector::processFrame(cv::Mat& frame) {
     cv::Mat frame_resize;
     cv::resize(frame, frame_resize, cv::Size(width, height));
     
-    cv::Mat bird_eye_view = applyIPM(frame_resize);
-    cv::Mat mask = processMask(bird_eye_view);
+    bird_eye_view_ = applyIPM(frame_resize);
+    cv::Mat mask = processMask(bird_eye_view_);
 
     std::vector<cv::Point> left_points, right_points;
     cv::Vec3f left_coeffs(0,0,0), right_coeffs(0,0,0);
     bool left_ok = false, right_ok = false;
 
-    slidingWindow(mask, left_points, right_points, bird_eye_view);
+    slidingWindow(mask, left_points, right_points, bird_eye_view_);
     left_ok  = (left_points.size()  >= 80);
     right_ok = (right_points.size() >= 80);
 
     cv::Vec3f temp_right_coeffs(0,0,0);
     if (right_ok) {
         if (left_ok) {
-            left_coeffs  = fitPoly(left_points, bird_eye_view, true);
+            left_coeffs  = fitPoly(left_points, bird_eye_view_, true);
         }
-        temp_right_coeffs = fitPoly(right_points, bird_eye_view, false);
+        temp_right_coeffs = fitPoly(right_points, bird_eye_view_, false);
         right_coeffs = temp_right_coeffs; 
     }
 
     bool change_lane = false;
     if (right_ok) {
-        int mid_y = bird_eye_view.rows;
+        int mid_y = bird_eye_view_.rows;
         float slope_right = computeLaneSlope(right_coeffs, mid_y);
         float slope_threshold = 0.3f;
         change_lane = (std::abs(slope_right) > slope_threshold);
@@ -59,10 +60,10 @@ void LaneDetector::processFrame(cv::Mat& frame) {
 
     if (change_lane) {                
         right_points.clear();
-        slidingWindowAdaptive(mask, right_points, bird_eye_view, temp_right_coeffs); 
+        slidingWindowAdaptive(mask, right_points, bird_eye_view_, temp_right_coeffs); 
         right_ok = (right_points.size() >= 80);
         if (right_ok) {
-            right_coeffs  = fitPoly(right_points, bird_eye_view, false);
+            right_coeffs  = fitPoly(right_points, bird_eye_view_, false);
         } else {
             right_coeffs = cv::Vec3f(0,0,0);
         }
@@ -70,46 +71,47 @@ void LaneDetector::processFrame(cv::Mat& frame) {
         left_coeffs = cv::Vec3f(0,0,0);
     }
 
-    // TÃƒÂ­nh centerline
-    std::vector<cv::Point> centerline = computeCenterline(left_coeffs, right_coeffs,
-                                                           left_ok, right_ok,
-                                                           bird_eye_view);
+    centerline_ = computeCenterline(left_coeffs, right_coeffs,
+                                    left_ok, right_ok,
+                                    bird_eye_view_);
+    
+    has_valid_lane_ = (centerline_.size() >= 3);
 
-    // ========== TÃƒÂNH CÃƒÂC THAM SÃ¡Â»Â MPC vÃƒ  LÃ†Â¯U VÃƒâ‚¬O current_state_ ==========
-    current_state_ = mpc_computer_.computeMpcParameters(centerline, bird_eye_view);
+    // Display information
+    displayInfo(frame_resize, left_ok, right_ok);
+    
+    cv::imshow("Mask", mask);
+    cv::imshow("Lane Detection", frame_resize);
+    cv::imshow("Bird's-eye View", bird_eye_view_);
+}
 
-    // ========== HIÃ¡Â»â€šN THÃ¡Â»Å  LÃƒÅ N FRAME ==========
-    // TÃ¡ÂºÂ¡o mÃ¡Â»â„¢t vÃƒÂ¹ng nÃ¡Â»Ân Ã„â€˜en cho text (tÃ„Æ’ng chiÃ¡Â»Âu cao Ã„â€˜Ã¡Â»Æ’ chÃ¡Â»Â©a thÃƒÂªm thÃƒÂ´ng tin)
+void LaneDetector::displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok) {
     cv::Rect textBox(10, 10, 400, 180);
     cv::rectangle(frame_resize, textBox, cv::Scalar(0, 0, 0), -1);
     cv::rectangle(frame_resize, textBox, cv::Scalar(0, 255, 255), 2);
 
-    if (current_state_.is_valid) {
-        // HiÃ¡Â»Æ’n thÃ¡Â»â€¹ curvature (phÃ¡ÂºÂ§n tÃ¡Â»Â­ Ã„â€˜Ã¡ÂºÂ§u tiÃƒÂªn)
+    if (has_mpc_data_) {
         std::string text_curv = "Curvature: " + 
-            std::to_string(current_state_.curvature[0]) + " (1/m)";
+            std::to_string(display_curvature_) + " (1/m)";
         cv::putText(frame_resize, text_curv, 
                    cv::Point(20, 35), 
                    cv::FONT_HERSHEY_SIMPLEX, 
                    0.5, cv::Scalar(0, 255, 255), 1);
 
-        // HiÃ¡Â»Æ’n thÃ¡Â»â€¹ offset
         std::string text_lat = "Offset: " + 
-            std::to_string(current_state_.lateral_deviation) + " (m)";
+            std::to_string(display_lateral_dev_) + " (m)";
         cv::putText(frame_resize, text_lat, 
                    cv::Point(20, 60), 
                    cv::FONT_HERSHEY_SIMPLEX, 
                    0.5, cv::Scalar(0, 255, 255), 1);
 
-        // HiÃ¡Â»Æ’n thÃ¡Â»â€¹ angle_y
-        float yaw_degree = current_state_.yaw_angle * 180.0f / M_PI;
+        float yaw_degree = display_yaw_angle_ * 180.0f / M_PI;
         std::string text_yaw = "Angle_y: " + std::to_string(yaw_degree) + " (deg)";
         cv::putText(frame_resize, text_yaw, 
                    cv::Point(20, 85), 
                    cv::FONT_HERSHEY_SIMPLEX, 
                    0.5, cv::Scalar(0, 255, 255), 1);
         
-        // HiÃ¡Â»Æ’n thÃ¡Â»â€¹ steering command (gÃƒÂ³c lÃƒÂ¡i tÃ¡Â»Â« MPC)
         if (has_steering_info_) {
             std::string text_cmd = "Steering CMD: " + 
                 std::to_string(current_steering_cmd_) + " (deg)";
@@ -118,7 +120,6 @@ void LaneDetector::processFrame(cv::Mat& frame) {
                        cv::FONT_HERSHEY_SIMPLEX, 
                        0.5, cv::Scalar(255, 128, 0), 1);
             
-            // HiÃ¡Â»Æ’n thÃ¡Â»â€¹ servo angle
             std::string text_servo = "Servo Angle: " + 
                 std::to_string(current_servo_angle_);
             cv::putText(frame_resize, text_servo, 
@@ -126,7 +127,6 @@ void LaneDetector::processFrame(cv::Mat& frame) {
                        cv::FONT_HERSHEY_SIMPLEX, 
                        0.5, cv::Scalar(255, 128, 0), 1);
         }
-        
     } else {
         cv::putText(frame_resize, "MPC: INVALID", 
                    cv::Point(20, 60), 
@@ -134,7 +134,6 @@ void LaneDetector::processFrame(cv::Mat& frame) {
                    0.5, cv::Scalar(0, 0, 255), 1);
     }
 
-    // HiÃ¡Â»Æ’n thÃ¡Â»â€¹ status
     std::string status = "Status: ";
     if (left_ok && right_ok) status += "Both Lanes";
     else if (left_ok) status += "Left Only";
@@ -145,21 +144,16 @@ void LaneDetector::processFrame(cv::Mat& frame) {
                cv::Point(20, 160), 
                cv::FONT_HERSHEY_SIMPLEX, 
                0.5, cv::Scalar(0, 255, 0), 1);
-
-    // ========== HIÃ¡Â»â€šN THÃ¡Â»Å  CÃƒÂC CÃ¡Â»Â¬A SÃ¡Â»â€ ==========
-    cv::imshow("Mask", mask);
-    cv::imshow("Lane Detection", frame_resize);
-    cv::imshow("Bird's-eye View", bird_eye_view);
 }
 
 cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
     float offsetY = 7.0f;
     float offsetX = 125.0f;
 
-    cv::Point2f tl(width * 0.25f + offsetX, height * 0.65f + offsetY);  //trÃƒÂªn trÃƒÂ¡i
-    cv::Point2f bl(32.0f   + offsetX, height);                          //dÃ†Â°Ã¡Â»â€ºi trÃƒÂ¡i
-    cv::Point2f tr(width * 0.80f - offsetX, height * 0.65f + offsetY);  //trÃƒÂªn phÃ¡ÂºÂ£i
-    cv::Point2f br(width  - offsetX, height);                           //dÃ†Â°Ã¡Â»â€ºi phÃ¡ÂºÂ£i
+    cv::Point2f tl(width * 0.25f + offsetX, height * 0.65f + offsetY);
+    cv::Point2f bl(32.0f   + offsetX, height);
+    cv::Point2f tr(width * 0.80f - offsetX, height * 0.65f + offsetY);
+    cv::Point2f br(width  - offsetX, height);
 
     std::vector<cv::Point2f> src_points = { tl, bl, tr, br };
 
@@ -279,12 +273,6 @@ cv::Mat LaneDetector::processMask(const cv::Mat& bird_eye_view) {
     cv::cvtColor(bird_eye_view, hsv, cv::COLOR_BGR2HSV);
     cv::inRange(hsv, cv::Scalar(0, 0, 200), cv::Scalar(180, 40, 255), mask);
     return mask;
-}
-
-std::vector<std::vector<cv::Point>> LaneDetector::findContoursInMask(const cv::Mat& mask) {
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-    return contours;
 }
 
 cv::Vec3f LaneDetector::fitPoly(const std::vector<cv::Point>& points, cv::Mat& outImg, bool isLeft) {
