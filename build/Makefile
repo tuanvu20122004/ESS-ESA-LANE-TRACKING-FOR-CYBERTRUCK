@@ -117,24 +117,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named lane_keeping_mpc
+# Target rules for targets named hihi
 
 # Build rule for target.
-lane_keeping_mpc: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 lane_keeping_mpc
-.PHONY : lane_keeping_mpc
+hihi: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 hihi
+.PHONY : hihi
 
 # fast build rule for target.
-lane_keeping_mpc/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/build
-.PHONY : lane_keeping_mpc/fast
+hihi/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/build
+.PHONY : hihi/fast
 
 src/ComputeMpc.o: src/ComputeMpc.cpp.o
 .PHONY : src/ComputeMpc.o
 
 # target to build an object file
 src/ComputeMpc.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/ComputeMpc.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o
 .PHONY : src/ComputeMpc.cpp.o
 
 src/ComputeMpc.i: src/ComputeMpc.cpp.i
@@ -142,7 +142,7 @@ src/ComputeMpc.i: src/ComputeMpc.cpp.i
 
 # target to preprocess a source file
 src/ComputeMpc.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/ComputeMpc.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/ComputeMpc.cpp.i
 .PHONY : src/ComputeMpc.cpp.i
 
 src/ComputeMpc.s: src/ComputeMpc.cpp.s
@@ -150,7 +150,7 @@ src/ComputeMpc.s: src/ComputeMpc.cpp.s
 
 # target to generate assembly for a file
 src/ComputeMpc.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/ComputeMpc.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/ComputeMpc.cpp.s
 .PHONY : src/ComputeMpc.cpp.s
 
 src/LaneDetector.o: src/LaneDetector.cpp.o
@@ -158,7 +158,7 @@ src/LaneDetector.o: src/LaneDetector.cpp.o
 
 # target to build an object file
 src/LaneDetector.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/LaneDetector.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/LaneDetector.cpp.o
 .PHONY : src/LaneDetector.cpp.o
 
 src/LaneDetector.i: src/LaneDetector.cpp.i
@@ -166,7 +166,7 @@ src/LaneDetector.i: src/LaneDetector.cpp.i
 
 # target to preprocess a source file
 src/LaneDetector.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/LaneDetector.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/LaneDetector.cpp.i
 .PHONY : src/LaneDetector.cpp.i
 
 src/LaneDetector.s: src/LaneDetector.cpp.s
@@ -174,7 +174,7 @@ src/LaneDetector.s: src/LaneDetector.cpp.s
 
 # target to generate assembly for a file
 src/LaneDetector.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/LaneDetector.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/LaneDetector.cpp.s
 .PHONY : src/LaneDetector.cpp.s
 
 src/MpcController.o: src/MpcController.cpp.o
@@ -182,7 +182,7 @@ src/MpcController.o: src/MpcController.cpp.o
 
 # target to build an object file
 src/MpcController.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/MpcController.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/MpcController.cpp.o
 .PHONY : src/MpcController.cpp.o
 
 src/MpcController.i: src/MpcController.cpp.i
@@ -190,7 +190,7 @@ src/MpcController.i: src/MpcController.cpp.i
 
 # target to preprocess a source file
 src/MpcController.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/MpcController.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/MpcController.cpp.i
 .PHONY : src/MpcController.cpp.i
 
 src/MpcController.s: src/MpcController.cpp.s
@@ -198,15 +198,39 @@ src/MpcController.s: src/MpcController.cpp.s
 
 # target to generate assembly for a file
 src/MpcController.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/MpcController.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/MpcController.cpp.s
 .PHONY : src/MpcController.cpp.s
+
+src/Trans_UDP.o: src/Trans_UDP.cpp.o
+.PHONY : src/Trans_UDP.o
+
+# target to build an object file
+src/Trans_UDP.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o
+.PHONY : src/Trans_UDP.cpp.o
+
+src/Trans_UDP.i: src/Trans_UDP.cpp.i
+.PHONY : src/Trans_UDP.i
+
+# target to preprocess a source file
+src/Trans_UDP.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/Trans_UDP.cpp.i
+.PHONY : src/Trans_UDP.cpp.i
+
+src/Trans_UDP.s: src/Trans_UDP.cpp.s
+.PHONY : src/Trans_UDP.s
+
+# target to generate assembly for a file
+src/Trans_UDP.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/Trans_UDP.cpp.s
+.PHONY : src/Trans_UDP.cpp.s
 
 src/communication.o: src/communication.cpp.o
 .PHONY : src/communication.o
 
 # target to build an object file
 src/communication.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/communication.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/communication.cpp.o
 .PHONY : src/communication.cpp.o
 
 src/communication.i: src/communication.cpp.i
@@ -214,7 +238,7 @@ src/communication.i: src/communication.cpp.i
 
 # target to preprocess a source file
 src/communication.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/communication.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/communication.cpp.i
 .PHONY : src/communication.cpp.i
 
 src/communication.s: src/communication.cpp.s
@@ -222,7 +246,7 @@ src/communication.s: src/communication.cpp.s
 
 # target to generate assembly for a file
 src/communication.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/communication.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/communication.cpp.s
 .PHONY : src/communication.cpp.s
 
 src/logger.o: src/logger.cpp.o
@@ -230,7 +254,7 @@ src/logger.o: src/logger.cpp.o
 
 # target to build an object file
 src/logger.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/logger.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/logger.cpp.o
 .PHONY : src/logger.cpp.o
 
 src/logger.i: src/logger.cpp.i
@@ -238,7 +262,7 @@ src/logger.i: src/logger.cpp.i
 
 # target to preprocess a source file
 src/logger.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/logger.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/logger.cpp.i
 .PHONY : src/logger.cpp.i
 
 src/logger.s: src/logger.cpp.s
@@ -246,7 +270,7 @@ src/logger.s: src/logger.cpp.s
 
 # target to generate assembly for a file
 src/logger.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/logger.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/logger.cpp.s
 .PHONY : src/logger.cpp.s
 
 src/logic.o: src/logic.cpp.o
@@ -254,7 +278,7 @@ src/logic.o: src/logic.cpp.o
 
 # target to build an object file
 src/logic.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/logic.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/logic.cpp.o
 .PHONY : src/logic.cpp.o
 
 src/logic.i: src/logic.cpp.i
@@ -262,7 +286,7 @@ src/logic.i: src/logic.cpp.i
 
 # target to preprocess a source file
 src/logic.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/logic.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/logic.cpp.i
 .PHONY : src/logic.cpp.i
 
 src/logic.s: src/logic.cpp.s
@@ -270,7 +294,7 @@ src/logic.s: src/logic.cpp.s
 
 # target to generate assembly for a file
 src/logic.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/logic.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/logic.cpp.s
 .PHONY : src/logic.cpp.s
 
 src/main.o: src/main.cpp.o
@@ -278,7 +302,7 @@ src/main.o: src/main.cpp.o
 
 # target to build an object file
 src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/main.cpp.o
 .PHONY : src/main.cpp.o
 
 src/main.i: src/main.cpp.i
@@ -286,7 +310,7 @@ src/main.i: src/main.cpp.i
 
 # target to preprocess a source file
 src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/main.cpp.i
 .PHONY : src/main.cpp.i
 
 src/main.s: src/main.cpp.s
@@ -294,7 +318,7 @@ src/main.s: src/main.cpp.s
 
 # target to generate assembly for a file
 src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/src/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
 # Help Target
@@ -305,7 +329,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... lane_keeping_mpc"
+	@echo "... hihi"
 	@echo "... src/ComputeMpc.o"
 	@echo "... src/ComputeMpc.i"
 	@echo "... src/ComputeMpc.s"
@@ -315,6 +339,9 @@ help:
 	@echo "... src/MpcController.o"
 	@echo "... src/MpcController.i"
 	@echo "... src/MpcController.s"
+	@echo "... src/Trans_UDP.o"
+	@echo "... src/Trans_UDP.i"
+	@echo "... src/Trans_UDP.s"
 	@echo "... src/communication.o"
 	@echo "... src/communication.i"
 	@echo "... src/communication.s"

@@ -33,14 +33,15 @@ set(SOURCES
     src/MpcController.cpp
     src/communication.cpp
     src/logger.cpp
+    src/Trans_UDP.cpp
     src/logic.cpp
 )
 
 # --- Create executable ---
-add_executable(lane_keeping_mpc ${SOURCES})
+add_executable(hihi ${SOURCES})
 
 # --- Link libraries ---
-target_link_libraries(lane_keeping_mpc
+target_link_libraries(hihi
     ${OpenCV_LIBS}
     Eigen3::Eigen
     OsqpEigen::OsqpEigen

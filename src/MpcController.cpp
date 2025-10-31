@@ -333,5 +333,4 @@ float MpcController::computeSteeringAngle(const MpcState& state, float velocity)
     }
 
     return solveQP(x0, v_k);
-
 }

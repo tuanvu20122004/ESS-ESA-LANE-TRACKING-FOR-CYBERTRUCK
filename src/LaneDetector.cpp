@@ -17,7 +17,7 @@ static bool try_open_gst(cv::VideoCapture& cap, const std::string& pipeline) {
 LaneDetector::LaneDetector(const std::string& videoPath, int width, int height)
     : width(width), height(height)
 {
-    const int CAP_W = 1280, CAP_H = 720;
+    const int CAP_W = 640, CAP_H = 480;
     const int OUT_W = width, OUT_H = height;
     const int FPS   = 30;
 
@@ -33,7 +33,6 @@ LaneDetector::LaneDetector(const std::string& videoPath, int width, int height)
             ", height=" + std::to_string(OUT_H) + " ! "
             "appsink max-buffers=1 drop=true sync=false";
 
-        // Fallback vẫn libcamera + scale, nới caps đầu vào cho dễ thương lượng
         const std::string p1 =
             "libcamerasrc ! "
             "videoconvert ! videoscale ! "
@@ -72,7 +71,7 @@ void LaneDetector::processFrame(cv::Mat& frame) {
     bird_eye_view = applyIPM(frame_resize);
 
     // 2) Mask trắng
-     mask = processMask(bird_eye_view);
+    mask = processMask(bird_eye_view);
 
     // 3) Tìm điểm làn
     std::vector<cv::Point> left_points, right_points;

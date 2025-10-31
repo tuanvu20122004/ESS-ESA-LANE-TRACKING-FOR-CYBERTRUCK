@@ -63,7 +63,7 @@ CMAKE_BINARY_DIR = /home/tuandevvtx/Documents/MpcControl/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/lane_keeping_mpc.dir/all
+all: CMakeFiles/hihi.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,34 +71,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/lane_keeping_mpc.dir/clean
+clean: CMakeFiles/hihi.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/lane_keeping_mpc.dir
+# Target rules for target CMakeFiles/hihi.dir
 
 # All Build rule for target.
-CMakeFiles/lane_keeping_mpc.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8 "Built target lane_keeping_mpc"
-.PHONY : CMakeFiles/lane_keeping_mpc.dir/all
+CMakeFiles/hihi.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Built target hihi"
+.PHONY : CMakeFiles/hihi.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/lane_keeping_mpc.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/tuandevvtx/Documents/MpcControl/build/CMakeFiles 8
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/lane_keeping_mpc.dir/all
+CMakeFiles/hihi.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/tuandevvtx/Documents/MpcControl/build/CMakeFiles 9
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/hihi.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/tuandevvtx/Documents/MpcControl/build/CMakeFiles 0
-.PHONY : CMakeFiles/lane_keeping_mpc.dir/rule
+.PHONY : CMakeFiles/hihi.dir/rule
 
 # Convenience name for target.
-lane_keeping_mpc: CMakeFiles/lane_keeping_mpc.dir/rule
-.PHONY : lane_keeping_mpc
+hihi: CMakeFiles/hihi.dir/rule
+.PHONY : hihi
 
 # clean rule for target.
-CMakeFiles/lane_keeping_mpc.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lane_keeping_mpc.dir/build.make CMakeFiles/lane_keeping_mpc.dir/clean
-.PHONY : CMakeFiles/lane_keeping_mpc.dir/clean
+CMakeFiles/hihi.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/clean
+.PHONY : CMakeFiles/hihi.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

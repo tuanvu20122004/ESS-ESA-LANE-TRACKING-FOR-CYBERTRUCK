@@ -18,7 +18,7 @@ private:
     cv::Mat bird_eye_view;
     cv::Mat frame_resize;
 public:
-    LaneDetector(const std::string& videoPath, int width = 640, int height = 480);
+    LaneDetector(const std::string& videoPath, int width, int height);
     ~LaneDetector();
 
     bool getFrame(cv::Mat& frame);
