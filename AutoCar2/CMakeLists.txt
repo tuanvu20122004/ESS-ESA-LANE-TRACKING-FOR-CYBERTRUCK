@@ -39,7 +39,6 @@ set(SOURCES
 # Header files
 set(HEADERS
     include/LaneDetector.hpp
-    include/ComputeMpc.hpp
     include/MpcController.hpp
 )
 
