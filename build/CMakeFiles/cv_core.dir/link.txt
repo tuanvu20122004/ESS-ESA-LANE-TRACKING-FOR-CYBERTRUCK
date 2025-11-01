@@ -1,0 +1,2 @@
+C:\msys64\mingw64\bin\ar.exe qc libcv_core.a CMakeFiles/cv_core.dir/src/LaneDetector.cpp.obj CMakeFiles/cv_core.dir/src/MpcController.cpp.obj
+C:\msys64\mingw64\bin\ranlib.exe libcv_core.a

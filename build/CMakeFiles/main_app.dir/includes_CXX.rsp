@@ -1,0 +1,1 @@
+-I"D:/ProjectWithCV2_Lib/LKPver1-11/include" -isystem C:/msys64/mingw64/include/opencv4 -isystem C:/msys64/mingw64/include/osqp -isystem C:/msys64/mingw64/include/eigen3
