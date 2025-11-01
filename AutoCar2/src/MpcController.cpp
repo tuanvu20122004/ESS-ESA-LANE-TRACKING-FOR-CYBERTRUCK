@@ -5,9 +5,14 @@
 #include <cmath>
 
 const float DISTANCE_TO_AXLE = 0.15f;  // 15cm from camera to axle
+const float DEFAULT_BIRD_EYE_WIDTH = 640.0f;   // Default bird's eye view width
+const float DEFAULT_BIRD_EYE_HEIGHT = 480.0f;  // Default bird's eye view height
 
 static int prev_z_dim = -1;
 static int prev_constraint_dim = -1;
+
+float vehicle_x_;
+float vehicle_y_;
 
 MpcController::MpcController()
     : wheelbase_(0.2515f),
@@ -46,11 +51,6 @@ void MpcController::setVehicleParams(float wheelbase, float mass, float Lf, floa
 void MpcController::setPredictionHorizon(int N) {
     N_ = N;
     initialized_ = false;
-}
-
-void MpcController::setVehiclePosition(float x, float y) {
-    vehicle_x_ = x;
-    vehicle_y_ = y;
 }
 
 Eigen::MatrixXd MpcController::matrixPower(const Eigen::MatrixXd& A, int p) {
@@ -330,6 +330,10 @@ std::vector<float> MpcController::computeMultipleCurvatures(const cv::Vec3f& coe
     std::vector<float> curvatures;
     float a = coeffs[0];
     float b = coeffs[1];
+
+    if(vehicle_y_ == 0.0f){
+        vehicle_y_ = DEFAULT_BIRD_EYE_HEIGHT - 1.0f;
+    }
     
     for (int i = 0; i < N; ++i) {
         float y = vehicle_y_ - i * 26.0f;  // 26 pixels ≈ 3cm
@@ -351,6 +355,7 @@ std::vector<float> MpcController::computeMultipleCurvatures(const cv::Vec3f& coe
 
 float MpcController::computeLateralDeviation(const cv::Vec3f& coeffs, 
                                           const cv::Mat& birdEyeView) {
+
     if (vehicle_x_ == 0.0f && vehicle_y_ == 0.0f) {
         vehicle_x_ = birdEyeView.cols / 2.0f;
         vehicle_y_ = birdEyeView.rows - 1.0f;
