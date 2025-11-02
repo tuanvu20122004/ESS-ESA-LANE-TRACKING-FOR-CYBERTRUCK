@@ -5,8 +5,6 @@
 #include <cmath>
 
 const float DISTANCE_TO_AXLE = 0.15f;  // 15cm from camera to axle
-const float DEFAULT_BIRD_EYE_WIDTH = 640.0f;   // Default bird's eye view width
-const float DEFAULT_BIRD_EYE_HEIGHT = 480.0f;  // Default bird's eye view height
 
 static int prev_z_dim = -1;
 static int prev_constraint_dim = -1;
