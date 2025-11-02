@@ -327,10 +327,6 @@ std::vector<float> MpcController::computeMultipleCurvatures(const cv::Vec3f& coe
     std::vector<float> curvatures;
     float a = coeffs[0];
     float b = coeffs[1];
-
-    if(vehicle_y_ == 0.0f){
-        vehicle_y_ = DEFAULT_BIRD_EYE_HEIGHT - 1.0f;
-    }
     
     for (int i = 0; i < N; ++i) {
         float y = vehicle_y_ - i * 26.0f;  // 26 pixels ≈ 3cm
