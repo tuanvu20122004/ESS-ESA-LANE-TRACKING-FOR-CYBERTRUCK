@@ -11,9 +11,6 @@ const float DEFAULT_BIRD_EYE_HEIGHT = 480.0f;  // Default bird's eye view height
 static int prev_z_dim = -1;
 static int prev_constraint_dim = -1;
 
-float vehicle_x_;
-float vehicle_y_;
-
 MpcController::MpcController()
     : wheelbase_(0.2515f),
     mass_(2.3f),
@@ -355,11 +352,6 @@ std::vector<float> MpcController::computeMultipleCurvatures(const cv::Vec3f& coe
 
 float MpcController::computeLateralDeviation(const cv::Vec3f& coeffs, 
                                           const cv::Mat& birdEyeView) {
-
-    if (vehicle_x_ == 0.0f && vehicle_y_ == 0.0f) {
-        vehicle_x_ = birdEyeView.cols / 2.0f;
-        vehicle_y_ = birdEyeView.rows - 1.0f;
-    }
     
     float centerline_x = coeffs[0] * vehicle_y_ * vehicle_y_ + 
                          coeffs[1] * vehicle_y_ + 
