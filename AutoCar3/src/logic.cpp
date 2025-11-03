@@ -25,6 +25,7 @@ Logic::Logic(const std::string& videoPath)
       udp_send("192.168.1.103", 9996),
       logger("log.txt"),
       udp_send1("192.168.1.103",9997){
+        
     // Khởi tạo MPC
     mpc.init(1000.0f, 50.0f, 5.0f); 
     mpc.debugMatrices(); //x
@@ -89,10 +90,12 @@ void Logic::run() {
                 continue;
             }
 
+            //xử lý ảnh và tính 3 thông số đầu vào của Mpc
             detector.processFrame(frame_local);
             std::vector<cv::Point> centerline = detector.getCenterline(); 
             cv::Mat birdEyeView = detector.getBirdEyeView();        
             MpcState state = mpc.computeMpcParameters(centerline, birdEyeView); 
+            
             // Gui anh ve server
             cv::Mat bev = detector.getBirdEyeView(); // Bird eye view perspective
             cv::Mat bev1 = detector.getFrameResize();  // Raw frame after resize
@@ -106,6 +109,8 @@ void Logic::run() {
                 udp_send1.sendFrame(bev1,60);
                 std::this_thread::sleep_for(std::chrono::milliseconds(33));
             }
+
+            //Tính toán góc lái
             if (state.is_valid) {
                 float steering = mpc.computeSteeringAngle(state, desired_velocity);
                 //logger.log("Steering",steering);
