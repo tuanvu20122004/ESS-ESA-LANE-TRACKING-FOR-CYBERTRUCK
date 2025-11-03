@@ -58,6 +58,9 @@ void Logic::run() {
             if(!detector.getBirdEyeView().empty()){              
                  cv::imshow("Bird_eye_view", detector.getBirdEyeView());     
             }
+            if(!detector.getFrameResize().empty()){              
+                 cv::imshow("Raw Frame", frame_resize);     
+            }
             int key = cv::waitKey(1);  
             if (key == 27 || key == 'q' || key == 'Q') {
                 running.store(false);
