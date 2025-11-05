@@ -19,14 +19,17 @@ public:
 
 private:
     //CONSTRUCTOR
-    LaneDetector   detector;
-    MpcController  mpc;
-    Communication  comm;
-    Trans_UDP      udp_send;
-    Trans_UDP      udp_send1;
-    Logger         logger;
+    LaneDetector   detector; 
+    MpcController  mpc; 
+    Communication  comm;  
+    Trans_UDP      udp_send; 
+    //Trans_UDP      udp_send1; 
+    Logger         logger; 
+    Logger         logger1;
+    MpcState       mpc_state;
+    Logger         logger2; 
     //VELOCITY 
-    const float desired_velocity = 0.05f;
+    const float desired_velocity = 0.1f;
 
     //SAFETY AND FRAME
     std::atomic<bool> running{true};

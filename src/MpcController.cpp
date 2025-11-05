@@ -1,12 +1,18 @@
 #include "MpcController.hpp"
-#include <OsqpEigen/OsqpEigen.h>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <iostream>
 #include <algorithm>
 #include <cmath>
 
+const float DISTANCE_TO_AXLE = 0.15f;  // 15cm from camera to axle
+const float DEFAULT_BIRD_EYE_WIDTH = 640.0f;   // Default bird's eye view width
+const float DEFAULT_BIRD_EYE_HEIGHT = 480.0f;  // Default bird's eye view height
+
 static int prev_z_dim = -1;
 static int prev_constraint_dim = -1;
+
+float vehicle_x_;
+float vehicle_y_;
 
 MpcController::MpcController()
     : wheelbase_(0.2515f),
@@ -25,7 +31,10 @@ MpcController::MpcController()
     solver_(nullptr),
     umin_(-28.0 * M_PI / 180.0),
     umax_(28.0 * M_PI / 180.0),
-    solver_initialized_(false) {
+    solver_initialized_(false),
+    pixel_per_meter_(0.0002f),
+    vehicle_x_(0.0f),
+    vehicle_y_(0.0f) {
 }
 
 void MpcController::setVehicleParams(float wheelbase, float mass, float Lf, float Lr,
@@ -49,7 +58,7 @@ Eigen::MatrixXd MpcController::matrixPower(const Eigen::MatrixXd& A, int p) {
     if (p == 1) return A;
     Eigen::MatrixXd result = A;
     for (int i = 1; i < p; ++i) {
-    result = result * A;
+        result = result * A;
     }
     return result;
 }
@@ -70,25 +79,24 @@ void MpcController::init(float Q1_weight, float Q2_weight, float R_weight) {
 
     initialized_ = true;
     std::cout << "[MPC] Controller initialized successfully" << std::endl;
-
 }
 
 void MpcController::buildMpcMatrices(float Vx) {
     // Continuous state-space
     Eigen::MatrixXd A_c(4, 4);
     A_c << 0, 1, 0, 0,
-    0, -(2*Caf_ + 2*Car_)/(mass_*Vx), (2*Caf_ + 2*Car_)/mass_,
-    (-2*Caf_*Lf_ + 2*Car_*Lr_)/(mass_*Vx),
-    0, 0, 0, 1,
-    0, (-2*Caf_*Lf_ + 2*Car_*Lr_)/(Iz_*Vx),
-    (2*Caf_*Lf_ - 2*Car_*Lr_)/Iz_,
-    (-2*Caf_*Lf_*Lf_ - 2*Car_*Lr_*Lr_)/(Iz_*Vx);
+           0, -(2*Caf_ + 2*Car_)/(mass_*Vx), (2*Caf_ + 2*Car_)/mass_,
+           (-2*Caf_*Lf_ + 2*Car_*Lr_)/(mass_*Vx),
+           0, 0, 0, 1,
+           0, (-2*Caf_*Lf_ + 2*Car_*Lr_)/(Iz_*Vx),
+           (2*Caf_*Lf_ - 2*Car_*Lr_)/Iz_,
+           (-2*Caf_*Lf_*Lf_ - 2*Car_*Lr_*Lr_)/(Iz_*Vx);
 
     Eigen::MatrixXd B_c(4, 2);
     B_c << 0, 0,
-        2*Caf_/mass_, (-2*Caf_*Lf_ + 2*Car_*Lr_)/(mass_*Vx) - Vx,
-        0, 0,
-        2*Caf_*Lf_/Iz_, (-2*Caf_*Lf_*Lf_ - 2*Car_*Lr_*Lr_)/(Iz_*Vx);
+           2*Caf_/mass_, (-2*Caf_*Lf_ + 2*Car_*Lr_)/(mass_*Vx) - Vx,
+           0, 0,
+           2*Caf_*Lf_/Iz_, (-2*Caf_*Lf_*Lf_ - 2*Car_*Lr_*Lr_)/(Iz_*Vx);
 
     // Discretization
     Eigen::MatrixXd M(6, 6);
@@ -103,8 +111,8 @@ void MpcController::buildMpcMatrices(float Vx) {
     B1_d_ = B_d.col(0);
     B2_d_ = B_d.col(1);
 
-    int n = 4;
-    int m = 1;
+    int n = 4;  // State dimension
+    int m = 1;  // Control input dimension
 
     AX_ = Eigen::MatrixXd::Zero((N_ + 1) * n, n);
     for (int i = 0; i <= N_; ++i) {
@@ -144,7 +152,6 @@ void MpcController::buildMpcMatrices(float Vx) {
     H_.block(0, 0, (N_ + 1) * n, (N_ + 1) * n) = QX;
     H_.block((N_ + 1) * n, (N_ + 1) * n, N_ * m, N_ * m) = RU;
     H_ += Eigen::MatrixXd::Identity(H_.rows(), H_.cols()) * 1e-6;
-
 }
 
 void MpcController::debugMatrices() {
@@ -157,10 +164,9 @@ void MpcController::debugMatrices() {
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_);
     double min_eigenvalue = es.eigenvalues().minCoeff();
     std::cout << "  H_ min eigenvalue: " << min_eigenvalue << std::endl;
+}
 
-    }
-
-    float MpcController::solveQP(const Eigen::VectorXd& x0, const Eigen::VectorXd& v_k) {
+float MpcController::solveQP(const Eigen::VectorXd& x0, const Eigen::VectorXd& v_k) {
     int nx = 4;
     int nu = 1;
     int z_dim = (N_ + 1) * nx + N_ * nu;
@@ -171,7 +177,6 @@ void MpcController::debugMatrices() {
         return 0.0f;
     }
 
-    // Build QP problem
     Eigen::MatrixXd G = H_;
     Eigen::VectorXd g = Eigen::VectorXd::Zero(z_dim);
 
@@ -181,68 +186,35 @@ void MpcController::debugMatrices() {
     Aeq.block(0, (N_ + 1) * nx, (N_ + 1) * nx, N_ * nu) = -BU_;
     Eigen::VectorXd beq = AX_ * x0 + BV_ * v_k;
 
-    // Validation: check finite and sizes
-    if (!G.allFinite()) {
-        std::cerr << "[MPC] Hessian contains NaN/Inf!" << std::endl;
-        return 0.0f;
-    }
-    if (!Aeq.allFinite()) {
-        std::cerr << "[MPC] Aeq contains NaN/Inf!" << std::endl;
-        return 0.0f;
-    }
-    if (!beq.allFinite()) {
-        std::cerr << "[MPC] beq contains NaN/Inf!" << std::endl;
-        return 0.0f;
-    }
-    if (G.rows() != z_dim || G.cols() != z_dim) {
-        std::cerr << "[MPC] Hessian size mismatch: " << G.rows() << "x" << G.cols() << " expected " << z_dim << "x" << z_dim << std::endl;
-        return 0.0f;
-    }
-    if (Aeq.rows() != constraint_dim || Aeq.cols() != z_dim) {
-        std::cerr << "[MPC] Aeq size mismatch: " << Aeq.rows() << "x" << Aeq.cols() << " expected " << constraint_dim << "x" << z_dim << std::endl;
+    if (!G.allFinite() || !Aeq.allFinite() || !beq.allFinite()) {
+        std::cerr << "[MPC] Matrix contains NaN/Inf!" << std::endl;
         return 0.0f;
     }
 
     Eigen::SparseMatrix<double> G_sparse = G.sparseView();
     Eigen::SparseMatrix<double> Aeq_sparse = Aeq.sparseView();
 
-    // lower/upper bounds
     Eigen::VectorXd lb = beq;
     Eigen::VectorXd ub = beq;
 
+    // If solver not initialized or dimensions changed, reinitialize
     if (!solver_initialized_ || prev_z_dim != z_dim || prev_constraint_dim != constraint_dim) {
         solver_.reset(new OsqpEigen::Solver());
-
-        // settings
         solver_->settings()->setVerbosity(false);
         solver_->settings()->setWarmStart(true);
         solver_->settings()->setMaxIteration(4000);
         solver_->settings()->setAbsoluteTolerance(1e-4);
         solver_->settings()->setRelativeTolerance(1e-4);
 
-        // set sizes
         solver_->data()->setNumberOfVariables(z_dim);
         solver_->data()->setNumberOfConstraints(constraint_dim);
 
-        // set full data
-        if (!solver_->data()->setHessianMatrix(G_sparse)) {
-            std::cerr << "[MPC] Failed to set Hessian!" << std::endl;
-            return 0.0f;
-        }
-        if (!solver_->data()->setGradient(g)) {
-            std::cerr << "[MPC] Failed to set gradient!" << std::endl;
-            return 0.0f;
-        }
-        if (!solver_->data()->setLinearConstraintsMatrix(Aeq_sparse)) {
-            std::cerr << "[MPC] Failed to set constraints!" << std::endl;
-            return 0.0f;
-        }
-        if (!solver_->data()->setLowerBound(lb)) {
-            std::cerr << "[MPC] Failed to set lower bound!" << std::endl;
-            return 0.0f;
-        }
-        if (!solver_->data()->setUpperBound(ub)) {
-            std::cerr << "[MPC] Failed to set upper bound!" << std::endl;
+        if (!solver_->data()->setHessianMatrix(G_sparse) ||
+            !solver_->data()->setGradient(g) ||
+            !solver_->data()->setLinearConstraintsMatrix(Aeq_sparse) ||
+            !solver_->data()->setLowerBound(lb) ||
+            !solver_->data()->setUpperBound(ub)) {
+            std::cerr << "[MPC] Failed to set solver data!" << std::endl;
             return 0.0f;
         }
 
@@ -255,53 +227,37 @@ void MpcController::debugMatrices() {
         prev_z_dim = z_dim;
         prev_constraint_dim = constraint_dim;
     } else {
-        // chỉ cập nhật (fast) dữ liệu mỗi vòng
-        if (!solver_->updateHessianMatrix(G_sparse)) {
-            std::cerr << "[MPC] updateHessianMatrix failed!" << std::endl;
-            return 0.0f;
-        }
-        if (!solver_->updateGradient(g)) {
-            std::cerr << "[MPC] updateGradient failed!" << std::endl;
-            return 0.0f;
-        }
-        if (!solver_->updateLinearConstraintsMatrix(Aeq_sparse)) {
-            std::cerr << "[MPC] updateLinearConstraintsMatrix failed — reinitializing solver!" << std::endl;
-            solver_initialized_ = false;
-            return solveQP(x0, v_k); // gọi lại để reinit
-        }
-        if (!solver_->updateBounds(lb, ub)) {
-            std::cerr << "[MPC] updateBounds failed!" << std::endl;
+        // Fast update for next iteration
+        if (!solver_->updateHessianMatrix(G_sparse) ||
+            !solver_->updateGradient(g) ||
+            !solver_->updateBounds(lb, ub)) {
+            std::cerr << "[MPC] Failed to update solver!" << std::endl;
             return 0.0f;
         }
     }
 
-    // Giải bài toán
     if (solver_->solveProblem() != OsqpEigen::ErrorExitFlag::NoError) {
         std::cerr << "[MPC] Solve failed!" << std::endl;
         return 0.0f;
     }
 
     Eigen::VectorXd z_opt = solver_->getSolution();
-    if (z_opt.size() != z_dim) {
-        std::cerr << "[MPC] Invalid solution size!" << std::endl;
-        return 0.0f;
-    }
-    if (!z_opt.allFinite()) {
-        std::cerr << "[MPC] Solution contains NaN/Inf!" << std::endl;
+    if (z_opt.size() != z_dim || !z_opt.allFinite()) {
+        std::cerr << "[MPC] Invalid solution!" << std::endl;
         return 0.0f;
     }
 
     double u_cmd = z_opt((N_ + 1) * nx);
     u_cmd = std::clamp(u_cmd, static_cast<double>(umin_), static_cast<double>(umax_));
 
-    return static_cast<float>(-u_cmd * 180.0 / M_PI);
-
+    //return static_cast<float>(-u_cmd * 180.0 / M_PI);
+    return static_cast<float>(u_cmd * 180.0 / M_PI);
 }
 
 float MpcController::computeSteeringAngle(const MpcState& state, float velocity) {
     if (!initialized_) {
-    std::cerr << "[MPC] Not initialized!" << std::endl;
-    return 0.0f;
+        std::cerr << "[MPC] Not initialized!" << std::endl;
+        return 0.0f;
     }
 
     static float cached_velocity = -1.0f;
@@ -333,4 +289,123 @@ float MpcController::computeSteeringAngle(const MpcState& state, float velocity)
     }
 
     return solveQP(x0, v_k);
+}
+
+// ==================== MPC COMPUTATION METHODS ====================
+
+cv::Vec3f MpcController::fitCenterlinePoly(const std::vector<cv::Point>& centerline) {
+    if (centerline.size() < 3) {
+        return cv::Vec3f(0, 0, 0);
+    }
+    
+    std::vector<float> x_vals, y_vals;
+    for (const auto& pt : centerline) {
+        x_vals.push_back(static_cast<float>(pt.x));
+        y_vals.push_back(static_cast<float>(pt.y));
+    }
+    
+    cv::Mat Y(y_vals.size(), 1, CV_32F, y_vals.data());
+    cv::Mat X(x_vals.size(), 1, CV_32F, x_vals.data());
+    
+    cv::Mat A(Y.rows, 3, CV_32F);
+    for (int i = 0; i < Y.rows; ++i) {
+        float y = Y.at<float>(i, 0);
+        A.at<float>(i, 0) = y * y;
+        A.at<float>(i, 1) = y;
+        A.at<float>(i, 2) = 1.0f;
+    }
+    
+    cv::Mat coeffs;
+    bool ok = cv::solve(A, X, coeffs, cv::DECOMP_SVD);
+    
+    if (ok) {
+        return cv::Vec3f(coeffs.at<float>(0), 
+                        coeffs.at<float>(1), 
+                        coeffs.at<float>(2));
+    }
+    
+    return cv::Vec3f(0, 0, 0);
+}
+
+std::vector<float> MpcController::computeMultipleCurvatures(const cv::Vec3f& coeffs, int N) {
+    std::vector<float> curvatures;
+    float a = coeffs[0];
+    float b = coeffs[1];
+
+    if(vehicle_y_ == 0.0f){
+        vehicle_y_ = DEFAULT_BIRD_EYE_HEIGHT - 1.0f;
+    }
+    
+    for (int i = 0; i < N; ++i) {
+        float y = vehicle_y_ - i * 26.0f;  // 26 pixels ≈ 3cm
+        
+        float dx_dy = 2.0f * a * y + b;
+        float d2x_dy2 = 2.0f * a;
+        
+        float numerator = std::abs(d2x_dy2);
+        float denominator = std::pow(1.0f + dx_dy * dx_dy, 1.5f);
+        
+        float kappa_pixel = (denominator > 1e-6f) ? (numerator / denominator) : 0.0f;
+        float kappa_meter = kappa_pixel / pixel_per_meter_;
+        
+        curvatures.push_back(kappa_meter);
+    }
+    
+    return curvatures;
+}
+
+float MpcController::computeLateralDeviation(const cv::Vec3f& coeffs, 
+                                          const cv::Mat& birdEyeView) {
+
+    if (vehicle_x_ == 0.0f && vehicle_y_ == 0.0f) {
+        vehicle_x_ = birdEyeView.cols / 2.0f;
+        vehicle_y_ = birdEyeView.rows - 1.0f;
+    }
+    
+    float centerline_x = coeffs[0] * vehicle_y_ * vehicle_y_ + 
+                         coeffs[1] * vehicle_y_ + 
+                         coeffs[2];
+    
+    float lateral_deviation_pixel = vehicle_x_ - centerline_x;
+    float lateral_deviation_meter = lateral_deviation_pixel * pixel_per_meter_;
+    
+    return lateral_deviation_meter;
+}
+
+float MpcController::computeYawAngle(const cv::Vec3f& coeffs, float y) {
+    float dx_dy = 2.0f * coeffs[0] * y + coeffs[1];
+    float yaw_angle_rad = std::atan(dx_dy);
+    
+    return yaw_angle_rad;
+}
+
+MpcState MpcController::computeMpcParameters(const std::vector<cv::Point>& centerline,
+                                          const cv::Mat& birdEyeView) {
+    MpcState result;
+    
+    if (centerline.size() < 3) {
+        result.is_valid = false;
+        return result;
+    }
+    
+    cv::Vec3f coeffs = fitCenterlinePoly(centerline);
+    
+    if (vehicle_x_ == 0.0f && vehicle_y_ == 0.0f) {
+        vehicle_x_ = birdEyeView.cols / 2.0f;
+        vehicle_y_ = birdEyeView.rows - 1.0f;
+    }
+    
+    // 1. Compute curvature vector (10 elements)
+    result.curvature = computeMultipleCurvatures(coeffs, 10);
+    
+    // 2. Compute yaw angle
+    result.yaw_angle = computeYawAngle(coeffs, vehicle_y_);
+    
+    // 3. Compute lateral deviation (with steering angle compensation)
+    float raw_deviation = computeLateralDeviation(coeffs, birdEyeView);
+    result.lateral_deviation = raw_deviation - 
+                               DISTANCE_TO_AXLE * std::sin(result.yaw_angle);
+    
+    result.is_valid = true;
+    return result;
 }

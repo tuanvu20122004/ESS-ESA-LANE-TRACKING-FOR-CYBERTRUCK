@@ -353,10 +353,6 @@ CMakeFiles/hihi.dir/src/main.cpp.o: \
  /usr/include/opencv4/opencv2/video.hpp \
  /usr/include/opencv4/opencv2/video/tracking.hpp \
  /usr/include/opencv4/opencv2/video/background_segm.hpp \
- /home/tuandevvtx/Documents/MpcControl/include/ComputeMpc.hpp \
- /home/tuandevvtx/Documents/MpcControl/include/MpcState.hpp \
- /usr/include/c++/13/numeric /usr/include/c++/13/bits/stl_numeric.h \
- /usr/include/c++/13/pstl/glue_numeric_defs.h \
  /home/tuandevvtx/Documents/MpcControl/include/MpcController.hpp \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \

@@ -129,30 +129,6 @@ hihi/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/build
 .PHONY : hihi/fast
 
-src/ComputeMpc.o: src/ComputeMpc.cpp.o
-.PHONY : src/ComputeMpc.o
-
-# target to build an object file
-src/ComputeMpc.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o
-.PHONY : src/ComputeMpc.cpp.o
-
-src/ComputeMpc.i: src/ComputeMpc.cpp.i
-.PHONY : src/ComputeMpc.i
-
-# target to preprocess a source file
-src/ComputeMpc.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/ComputeMpc.cpp.i
-.PHONY : src/ComputeMpc.cpp.i
-
-src/ComputeMpc.s: src/ComputeMpc.cpp.s
-.PHONY : src/ComputeMpc.s
-
-# target to generate assembly for a file
-src/ComputeMpc.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/ComputeMpc.cpp.s
-.PHONY : src/ComputeMpc.cpp.s
-
 src/LaneDetector.o: src/LaneDetector.cpp.o
 .PHONY : src/LaneDetector.o
 
@@ -330,9 +306,6 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... hihi"
-	@echo "... src/ComputeMpc.o"
-	@echo "... src/ComputeMpc.i"
-	@echo "... src/ComputeMpc.s"
 	@echo "... src/LaneDetector.o"
 	@echo "... src/LaneDetector.i"
 	@echo "... src/LaneDetector.s"

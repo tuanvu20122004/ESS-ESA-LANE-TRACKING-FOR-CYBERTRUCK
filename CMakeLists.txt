@@ -29,7 +29,6 @@ link_directories(
 set(SOURCES
     src/main.cpp
     src/LaneDetector.cpp
-    src/ComputeMpc.cpp
     src/MpcController.cpp
     src/communication.cpp
     src/logger.cpp

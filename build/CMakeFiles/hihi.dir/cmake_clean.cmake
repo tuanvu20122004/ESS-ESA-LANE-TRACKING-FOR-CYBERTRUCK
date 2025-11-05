@@ -1,6 +1,4 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o"
-  "CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o.d"
   "CMakeFiles/hihi.dir/src/LaneDetector.cpp.o"
   "CMakeFiles/hihi.dir/src/LaneDetector.cpp.o.d"
   "CMakeFiles/hihi.dir/src/MpcController.cpp.o"

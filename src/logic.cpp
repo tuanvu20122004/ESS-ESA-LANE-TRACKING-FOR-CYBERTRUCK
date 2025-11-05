@@ -22,11 +22,14 @@ void bindToCore(int core_id) {
 Logic::Logic(const std::string& videoPath)
     : detector(videoPath, 640, 480), 
       comm("/dev/ttyACM0", 115200),  
-      udp_send("192.168.1.103", 9996),
-      logger("log.txt"),
-      udp_send1("192.168.1.103",9997){
+      udp_send("192.168.1.108", 9996),
+      logger("Curvature.txt"),
+      //udp_send1("192.168.1.103",9997),
+      logger1("steering.txt"),
+      logger2("Yaw.txt") {
     // Khởi tạo MPC
     mpc.init(1000.0f, 50.0f, 5.0f); 
+    mpc.debugMatrices(); //x
     mpc.setVehicleParams(0.2515f, 2.3f, 0.132f, 0.12f, 0.04f, 0.02f, 0.04f);
 
     if (!detector.isOpened()) {
@@ -44,7 +47,7 @@ void Logic::run() {
         cv::namedWindow("Live Feed", cv::WINDOW_AUTOSIZE);  
 
         while (running.load()) {
-            if (!detector.getFrame(frame)) {
+            if (!detector.getFrame(frame)) {  
                 std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
                 continue;
             }
@@ -53,16 +56,16 @@ void Logic::run() {
                 std::lock_guard<std::mutex> lock(frame_mutex); 
                 latest_frame = frame; 
             }
-            /*cv::imshow("Live Feed", frame);
-            if(!detector.get_frame_resize().empty()){
-                 cv::imshow("Frame_resize", detector.get_frame_resize());
+
+            if(!detector.getBirdEyeView().empty()){              
+                 cv::imshow("Bird_eye_view", detector.getBirdEyeView());
+	        }    
+            /*if(!detector.getMask().empty()){
+                cv::imshow("Mask",detector.getMask());
             }*/
-            /*if(!detector.get_mask().empty()){
-                 cv::imshow("Mask", detector.get_mask());
+            /*if(!detector.getFrameResize().empty()){              
+                 cv::imshow("Resize", detector.getFrameResize());     
             }*/
-            if(!detector.get_bird_eye_view().empty()){
-                 cv::imshow("Bird_eye_view", detector.get_bird_eye_view());
-            }
             int key = cv::waitKey(1);  
             if (key == 27 || key == 'q' || key == 'Q') {
                 running.store(false);
@@ -73,9 +76,9 @@ void Logic::run() {
 
     // ---- MPC thread ----
     std::thread mpc_thread([&]() {
-        bindToCore(0); 
+        bindToCore(1); 
         cv::Mat frame_local;
-
+        auto last_send = std::chrono::steady_clock::now();
         while (running.load()) {
             {
                 std::lock_guard<std::mutex> lock(frame_mutex);
@@ -92,26 +95,36 @@ void Logic::run() {
             }
 
             detector.processFrame(frame_local);
-            MpcState state = detector.getMpcState();
+            std::vector<cv::Point> centerline = detector.getCenterline(); 
+            cv::Mat birdEyeView = detector.getBirdEyeView();        
+            MpcState state = mpc.computeMpcParameters(centerline, birdEyeView); 
             // Gui anh ve server
-            cv::Mat bev = detector.get_bird_eye_view();
-            cv::Mat bev1 = detector.get_frame_resize();
+            cv::Mat bev = detector.getBirdEyeView(); // Bird eye view perspective
+            //cv::Mat bev1 = detector.getFrameResize();  // Raw frame after resize
+
             if(!bev.empty()){
                 //GUI Bird_eye_view 
-                udp_send.sendFrame(bev,60);
-                std::this_thread::sleep_for(std::chrono::milliseconds(33));
+                udp_send.sendFrame(bev,70);
+                std::this_thread::sleep_for(std::chrono::milliseconds(40));
             }
-            if(!bev1.empty()){
+            /*if(!bev1.empty()){
                 //GUI Frame_size
                 udp_send1.sendFrame(bev1,60);
                 std::this_thread::sleep_for(std::chrono::milliseconds(33));
-            }
-            if (state.is_valid) {
+            }*/
+            auto now = std::chrono::steady_clock::now();
+            if(std::chrono::duration_cast<std::chrono::milliseconds>(now-last_send).count() >= 10){
+                last_send = now;
+                if (state.is_valid) {
                 float steering = mpc.computeSteeringAngle(state, desired_velocity);
-                //logger.log("Steering",steering);
-                int servo = 93 + static_cast<int>(steering);
-                logger.log("Send_for_Stm32",servo);
+                //logger1.log("Steering",steering);
+                //logger1.log("Lateral_Dev",state.lateral_deviation);
+                //logger2.log("Yaw_Angle",state.yaw_angle);
+                //logger.log("Curvature",state.curvature[0]);
+                int servo = static_cast<int>(std::lround(97.0f + steering)); 
+                //logger.log("Send_for_Stm32",servo);
                 comm.sendCommands(desired_velocity,servo);
+            }
             }
         }
     });

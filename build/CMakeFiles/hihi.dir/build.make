@@ -97,24 +97,10 @@ CMakeFiles/hihi.dir/src/LaneDetector.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hihi.dir/src/LaneDetector.cpp.s"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tuandevvtx/Documents/MpcControl/src/LaneDetector.cpp -o CMakeFiles/hihi.dir/src/LaneDetector.cpp.s
 
-CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o: CMakeFiles/hihi.dir/flags.make
-CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o: /home/tuandevvtx/Documents/MpcControl/src/ComputeMpc.cpp
-CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o: CMakeFiles/hihi.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o -MF CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o.d -o CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/ComputeMpc.cpp
-
-CMakeFiles/hihi.dir/src/ComputeMpc.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/hihi.dir/src/ComputeMpc.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/tuandevvtx/Documents/MpcControl/src/ComputeMpc.cpp > CMakeFiles/hihi.dir/src/ComputeMpc.cpp.i
-
-CMakeFiles/hihi.dir/src/ComputeMpc.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/hihi.dir/src/ComputeMpc.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tuandevvtx/Documents/MpcControl/src/ComputeMpc.cpp -o CMakeFiles/hihi.dir/src/ComputeMpc.cpp.s
-
 CMakeFiles/hihi.dir/src/MpcController.cpp.o: CMakeFiles/hihi.dir/flags.make
 CMakeFiles/hihi.dir/src/MpcController.cpp.o: /home/tuandevvtx/Documents/MpcControl/src/MpcController.cpp
 CMakeFiles/hihi.dir/src/MpcController.cpp.o: CMakeFiles/hihi.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/hihi.dir/src/MpcController.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/hihi.dir/src/MpcController.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hihi.dir/src/MpcController.cpp.o -MF CMakeFiles/hihi.dir/src/MpcController.cpp.o.d -o CMakeFiles/hihi.dir/src/MpcController.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/MpcController.cpp
 
 CMakeFiles/hihi.dir/src/MpcController.cpp.i: cmake_force
@@ -128,7 +114,7 @@ CMakeFiles/hihi.dir/src/MpcController.cpp.s: cmake_force
 CMakeFiles/hihi.dir/src/communication.cpp.o: CMakeFiles/hihi.dir/flags.make
 CMakeFiles/hihi.dir/src/communication.cpp.o: /home/tuandevvtx/Documents/MpcControl/src/communication.cpp
 CMakeFiles/hihi.dir/src/communication.cpp.o: CMakeFiles/hihi.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/hihi.dir/src/communication.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/hihi.dir/src/communication.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hihi.dir/src/communication.cpp.o -MF CMakeFiles/hihi.dir/src/communication.cpp.o.d -o CMakeFiles/hihi.dir/src/communication.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/communication.cpp
 
 CMakeFiles/hihi.dir/src/communication.cpp.i: cmake_force
@@ -142,7 +128,7 @@ CMakeFiles/hihi.dir/src/communication.cpp.s: cmake_force
 CMakeFiles/hihi.dir/src/logger.cpp.o: CMakeFiles/hihi.dir/flags.make
 CMakeFiles/hihi.dir/src/logger.cpp.o: /home/tuandevvtx/Documents/MpcControl/src/logger.cpp
 CMakeFiles/hihi.dir/src/logger.cpp.o: CMakeFiles/hihi.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/hihi.dir/src/logger.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/hihi.dir/src/logger.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hihi.dir/src/logger.cpp.o -MF CMakeFiles/hihi.dir/src/logger.cpp.o.d -o CMakeFiles/hihi.dir/src/logger.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/logger.cpp
 
 CMakeFiles/hihi.dir/src/logger.cpp.i: cmake_force
@@ -156,7 +142,7 @@ CMakeFiles/hihi.dir/src/logger.cpp.s: cmake_force
 CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o: CMakeFiles/hihi.dir/flags.make
 CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o: /home/tuandevvtx/Documents/MpcControl/src/Trans_UDP.cpp
 CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o: CMakeFiles/hihi.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o -MF CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o.d -o CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/Trans_UDP.cpp
 
 CMakeFiles/hihi.dir/src/Trans_UDP.cpp.i: cmake_force
@@ -170,7 +156,7 @@ CMakeFiles/hihi.dir/src/Trans_UDP.cpp.s: cmake_force
 CMakeFiles/hihi.dir/src/logic.cpp.o: CMakeFiles/hihi.dir/flags.make
 CMakeFiles/hihi.dir/src/logic.cpp.o: /home/tuandevvtx/Documents/MpcControl/src/logic.cpp
 CMakeFiles/hihi.dir/src/logic.cpp.o: CMakeFiles/hihi.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/hihi.dir/src/logic.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/hihi.dir/src/logic.cpp.o"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/hihi.dir/src/logic.cpp.o -MF CMakeFiles/hihi.dir/src/logic.cpp.o.d -o CMakeFiles/hihi.dir/src/logic.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/logic.cpp
 
 CMakeFiles/hihi.dir/src/logic.cpp.i: cmake_force
@@ -185,7 +171,6 @@ CMakeFiles/hihi.dir/src/logic.cpp.s: cmake_force
 hihi_OBJECTS = \
 "CMakeFiles/hihi.dir/src/main.cpp.o" \
 "CMakeFiles/hihi.dir/src/LaneDetector.cpp.o" \
-"CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o" \
 "CMakeFiles/hihi.dir/src/MpcController.cpp.o" \
 "CMakeFiles/hihi.dir/src/communication.cpp.o" \
 "CMakeFiles/hihi.dir/src/logger.cpp.o" \
@@ -197,7 +182,6 @@ hihi_EXTERNAL_OBJECTS =
 
 hihi: CMakeFiles/hihi.dir/src/main.cpp.o
 hihi: CMakeFiles/hihi.dir/src/LaneDetector.cpp.o
-hihi: CMakeFiles/hihi.dir/src/ComputeMpc.cpp.o
 hihi: CMakeFiles/hihi.dir/src/MpcController.cpp.o
 hihi: CMakeFiles/hihi.dir/src/communication.cpp.o
 hihi: CMakeFiles/hihi.dir/src/logger.cpp.o
@@ -262,7 +246,7 @@ hihi: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.4.6.0
 hihi: /usr/lib/x86_64-linux-gnu/libopencv_core.so.4.6.0
 hihi: /usr/local/lib/libosqp.so
 hihi: CMakeFiles/hihi.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable hihi"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/tuandevvtx/Documents/MpcControl/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable hihi"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/hihi.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
