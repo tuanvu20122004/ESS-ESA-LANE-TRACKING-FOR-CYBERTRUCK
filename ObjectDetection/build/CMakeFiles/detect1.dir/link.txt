@@ -1,3 +1,0 @@
-C:\msys64\mingw64\bin\cmake.exe -E rm -f CMakeFiles\detect1.dir/objects.a
-C:\msys64\mingw64\bin\ar.exe qc CMakeFiles\detect1.dir/objects.a @CMakeFiles\detect1.dir\objects1.rsp
-C:\msys64\mingw64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\detect1.dir/objects.a -Wl,--no-whole-archive -o detect1.exe -Wl,--out-implib,libdetect1.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\detect1.dir\linkLibs.rsp
