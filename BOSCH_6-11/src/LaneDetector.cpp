@@ -1,13 +1,51 @@
 #include "LaneDetector.hpp"
+#include <algorithm>
+#include <iostream>
 
-LaneDetector::LaneDetector(const std::string& videoPath, int width, int height) {
-    cap.open(videoPath);
-    if (!cap.isOpened()) {
-        std::cout << "Không mở được video!" << std::endl;
-        exit(-1);
+static bool try_open_gst(cv::VideoCapture& cap, const std::string& pipeline) {
+    std::cout << "[CAMERA] Try pipeline:\n" << pipeline << "\n";
+    if (!cap.open(pipeline, cv::CAP_GSTREAMER)) {
+        std::cerr << "[CAMERA] Open failed.\n";
+        return false;
     }
-    this->width = width;
-    this->height = height;
+    std::cout << "[CAMERA] Opened OK.\n";
+    return true;
+}
+
+LaneDetector::LaneDetector(const std::string& videoPath, int width, int height)
+    : width(width), height(height)
+{
+    const int CAP_W = 640, CAP_H = 480;
+    const int OUT_W = width, OUT_H = height;
+    const int FPS   = 30;
+
+    if (videoPath.find("/dev/") != std::string::npos) {
+	// Chỉ dùng libcamera + videoscale
+        const std::string p0 =
+            "libcamerasrc ! "
+            "video/x-raw, width=" + std::to_string(CAP_W) +
+            ", height=" + std::to_string(CAP_H) +
+            ", framerate=" + std::to_string(FPS) + "/1 ! "
+            "videoconvert ! videoscale ! "
+            "video/x-raw, format=(string)BGR, width=" + std::to_string(OUT_W) +
+            ", height=" + std::to_string(OUT_H) + " ! "
+            "appsink max-buffers=1 drop=true sync=false";
+
+        const std::string p1 =
+            "libcamerasrc ! "
+            "videoconvert ! videoscale ! "
+            "video/x-raw, format=(string)BGR, width=" + std::to_string(OUT_W) +
+            ", height=" + std::to_string(OUT_H) + " ! "
+            "appsink max-buffers=1 drop=true sync=false";
+
+        if (!try_open_gst(cap, p0) && !try_open_gst(cap, p1)) {
+            throw std::runtime_error("Cannot open camera with libcamerasrc: " + videoPath);
+        }
+    } else {
+        if (!cap.open(videoPath)) {
+            throw std::runtime_error("Cannot open file: " + videoPath);
+        }
+    }
 }
 
 LaneDetector::~LaneDetector() {
@@ -15,67 +53,146 @@ LaneDetector::~LaneDetector() {
     cv::destroyAllWindows();
 }
 
-void LaneDetector::processFrame() {
-    cv::Mat frame, frame_resize;
+bool LaneDetector::getFrame(cv::Mat& frame) {
+    cap >> frame;
+    cv::Mat undistorted;
+    cv::Mat cameraMatrix = (cv::Mat_<double>(3,3) <<
+        262.08953333143063, 0.0, 330.77574325128484,
+        0.0, 263.57901348164575, 250.50298224489268,
+        0.0, 0.0, 1.0);
+    cv::Mat distCoeffs = (cv::Mat_<double>(1,5) <<
+        -0.27166331922859776, 0.09924985737514846,
+        -0.0002707688044880526, 0.0006724194580262318,
+        -0.01935517123682299);
+    cv::undistort(frame, undistorted, cameraMatrix, distCoeffs);
+    frame = undistorted.clone();
+
+    cv::resize(frame, frame_resize, cv::Size(width, height));
+    return !frame.empty();
+}
+
+bool LaneDetector::isOpened() const {
+    return cap.isOpened();
+}
+
+cv::Mat LaneDetector::getFrameResize() {
+    return frame_resize;
+}
+cv::Mat LaneDetector::getMask() const{
+    return mask;
+}
+void LaneDetector::processFrame(cv::Mat& frame_resize) {
+    bird_eye_view_ = applyIPM(frame_resize);
+    mask = processMask(bird_eye_view_);
+
     int minpix=30;
-    while (true) {
-        cap >> frame;
-        if (frame.empty()) break;
+    std::vector<cv::Point> left_points, right_points;
+    cv::Vec3f left_coeffs(0,0,0), right_coeffs(0,0,0);
+    bool left_ok = false, right_ok = false;
 
-        cv::resize(frame, frame_resize, cv::Size(width, height));
-        cv::Mat bird_eye_view = applyIPM(frame_resize);
-        cv::Mat mask = processMask(bird_eye_view);
+    slidingWindow(mask, left_points, right_points, bird_eye_view, minpix);
+    left_ok  = (left_points.size()  >= 80);
+    right_ok = (right_points.size() >= 80);
 
-        std::vector<cv::Point> left_points, right_points;
-        cv::Vec3f left_coeffs(0,0,0), right_coeffs(0,0,0);
-        bool left_ok = false, right_ok = false;
-
-        // ===== Sliding window step (init 2 lane) =====
-        slidingWindow(mask, left_points, right_points, bird_eye_view, minpix);
-        left_ok  = (left_points.size()  >= 80);
-        right_ok = (right_points.size() >= 80);
-
-        if (left_ok) {
-            left_coeffs = fitPoly(left_points, bird_eye_view, true);
-        }
-        bool change_lane = false;
-        if (right_ok) {
-            right_coeffs = fitPoly(right_points, bird_eye_view, false);
-            int mid_y = bird_eye_view.rows;
-            float slope_right = computeLaneSlope(right_coeffs, mid_y);
-            float slope_threshold = 0.2f;
-            change_lane = (std::abs(slope_right) > slope_threshold);
-        }
-        if (change_lane) {                
-            minpix = 5;
-        }
-        // ===== Tính centerline =====
-        computeCenterline(left_coeffs, right_coeffs,
-                        left_ok, right_ok,
-                        bird_eye_view);
-
-        // ===== Hiển thị =====
-        cv::imshow("Mask", mask);
-        cv::imshow("Lane Detection", frame_resize);
-        cv::imshow("Bird's-eye View", bird_eye_view);
-
-        if (cv::waitKey(30) == 27) break; // ESC để thoát
+    if (left_ok) {
+        left_coeffs = fitPoly(left_points, bird_eye_view, true);
     }
+    bool change_lane = false;
+    if (right_ok) {
+        right_coeffs = fitPoly(right_points, bird_eye_view, false);
+        int mid_y = bird_eye_view.rows;
+        float slope_right = computeLaneSlope(right_coeffs, mid_y);
+        float slope_threshold = 0.2f;
+        change_lane = (std::abs(slope_right) > slope_threshold);
+    }
+    if (change_lane) {                
+        minpix = 5;
+    }
+    // ===== Tính centerline =====
+    computeCenterline(left_coeffs, right_coeffs,
+                    left_ok, right_ok,
+                    bird_eye_view);
+    
+    has_valid_lane_ = (centerline_.size() >= 3);
+
+    // Display information
+    displayInfo(frame_resize, left_ok, right_ok);
+    
+}
+
+void LaneDetector::displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok) {
+    cv::Rect textBox(10, 10, 400, 180);
+    cv::rectangle(frame_resize, textBox, cv::Scalar(0, 0, 0), -1);
+    cv::rectangle(frame_resize, textBox, cv::Scalar(0, 255, 255), 2);
+
+    if (has_mpc_data_) {
+        std::string text_curv = "Curvature: " + 
+            std::to_string(display_curvature_) + " (1/m)";
+        cv::putText(frame_resize, text_curv, 
+                   cv::Point(20, 35), 
+                   cv::FONT_HERSHEY_SIMPLEX, 
+                   0.5, cv::Scalar(0, 255, 255), 1);
+
+        std::string text_lat = "Offset: " + 
+            std::to_string(display_lateral_dev_) + " (m)";
+        cv::putText(frame_resize, text_lat, 
+                   cv::Point(20, 60), 
+                   cv::FONT_HERSHEY_SIMPLEX, 
+                   0.5, cv::Scalar(0, 255, 255), 1);
+
+        float yaw_degree = display_yaw_angle_ * 180.0f / M_PI;
+        std::string text_yaw = "Angle_y: " + std::to_string(yaw_degree) + " (deg)";
+        cv::putText(frame_resize, text_yaw, 
+                   cv::Point(20, 85), 
+                   cv::FONT_HERSHEY_SIMPLEX, 
+                   0.5, cv::Scalar(0, 255, 255), 1);
+        
+        if (has_steering_info_) {
+            std::string text_cmd = "Steering CMD: " + 
+                std::to_string(current_steering_cmd_) + " (deg)";
+            cv::putText(frame_resize, text_cmd, 
+                       cv::Point(20, 110), 
+                       cv::FONT_HERSHEY_SIMPLEX, 
+                       0.5, cv::Scalar(255, 128, 0), 1);
+            
+            std::string text_servo = "Servo Angle: " + 
+                std::to_string(current_servo_angle_);
+            cv::putText(frame_resize, text_servo, 
+                       cv::Point(20, 135), 
+                       cv::FONT_HERSHEY_SIMPLEX, 
+                       0.5, cv::Scalar(255, 128, 0), 1);
+        }
+    } else {
+        cv::putText(frame_resize, "MPC: INVALID", 
+                   cv::Point(20, 60), 
+                   cv::FONT_HERSHEY_SIMPLEX, 
+                   0.5, cv::Scalar(0, 0, 255), 1);
+    }
+
+    std::string status = "Status: ";
+    if (left_ok && right_ok) status += "Both Lanes";
+    else if (left_ok) status += "Left Only";
+    else if (right_ok) status += "Right Only";
+    else status += "No Lane";
+    
+    cv::putText(frame_resize, status, 
+               cv::Point(20, 160), 
+               cv::FONT_HERSHEY_SIMPLEX, 
+               0.5, cv::Scalar(0, 255, 0), 1);
 }
 
 cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
-    // Chọn 4 điểm nguồn (IPM)
-    float offsetY = 0.0f;  // -80.0f;
-    float offsetX = 80.0f; // 60.0f
+    float offsetY = -70.0f;
+    float offsetX = 100.0f;
 
-    cv::Point2f tl(width * 0.25f + offsetX, height * 0.65f + offsetY);  // Trên trái
-    cv::Point2f bl(0.0f + offsetX, height + offsetY);                    // Dưới trái
-    cv::Point2f tr(width * 0.75f - offsetX, height * 0.65f + offsetY);  // Trên phải
-    cv::Point2f br(width - offsetX, height + offsetY);                   // Dưới phải
+    cv::Point2f tl(width * 0.20f + offsetX, height * 0.65f + offsetY);
+    cv::Point2f bl(32.0f   + offsetX, height - 140);
+    cv::Point2f tr(width * 0.85f - offsetX, height * 0.65f + offsetY);
+    cv::Point2f br(width  - offsetX, height - 140);
 
     std::vector<cv::Point2f> src_points = { tl, bl, tr, br };
 
-    for (int i = 0; i < src_points.size(); i++) {
+    for (size_t i = 0; i < src_points.size(); i++) {
         cv::circle(frame, src_points[i], 5, cv::Scalar(0, 255, 0), -1);
     }
 
@@ -102,11 +219,9 @@ void LaneDetector::slidingWindow(const cv::Mat& mask,
     int width    = mask.cols;
     int window_height = height / nwindows;
 
-    // Histogram đáy ảnh
     cv::Mat hist;
     cv::reduce(mask(cv::Rect(0, height/2, width, height/2)),
             hist, 0, cv::REDUCE_SUM, CV_32S);
-    //hist = hist.reshape(1, hist.cols);  // biến hist thành vector 1D
     int midpoint = hist.cols / 2;
     int leftx_base  = std::max_element(hist.begin<int>(), hist.begin<int>() + midpoint) - hist.begin<int>();
     int rightx_base = std::max_element(hist.begin<int>() + midpoint, hist.end<int>()) - hist.begin<int>();
@@ -119,7 +234,6 @@ void LaneDetector::slidingWindow(const cv::Mat& mask,
 
     for (int window = 0; window < nwindows; window++) {
         int win_y_low  = height - (window+1) * window_height;
-        int win_y_high = height - window * window_height;
 
         cv::Rect left_win(leftx_current - margin, win_y_low, margin*2, window_height);
         cv::Rect right_win(rightx_current - margin, win_y_low, margin*2, window_height);
@@ -156,31 +270,30 @@ void LaneDetector::slidingWindowAdaptive(const cv::Mat& mask,
                                std::vector<cv::Point>& lane_points,
                                cv::Mat& outImg,
                                cv::Vec3f prev_poly) {
-    int nwindows = 15;                     // số cửa sổ
-    int margin   = 60;                     // nửa chiều rộng cửa sổ
-    int height   = mask.rows;              // chiều cao ảnh
-    int window_height = height / nwindows; // chiều cao mỗi cửa sổ
+    int nwindows = 15;
+    int margin   = 60;
+    int height   = mask.rows;
+    int window_height = height / nwindows;
 
-    // Lấy toàn bộ pixel trắng
     std::vector<cv::Point> nonzero;
     cv::findNonZero(mask, nonzero);
 
-    int x_center = mask.cols / 2; // mặc định ở giữa
+    int x_center = mask.cols / 2;
 
-    // Duyệt qua từng cửa sổ
     for (int window = 0; window < nwindows; window++) {
         int win_y_low  = height - (window+1) * window_height;
         int win_y_high = height - window * window_height;
         int y_mid      = (win_y_low + win_y_high) / 2;
 
-        // Nếu có poly trước thì tính x_center theo poly
         x_center = (int)(prev_poly[0]*y_mid*y_mid +
                             prev_poly[1]*y_mid +
                             prev_poly[2]);
 
         cv::Rect win(x_center - margin, win_y_low, margin*2, window_height);
         win &= cv::Rect(0, 0, mask.cols, mask.rows);
+
         cv::rectangle(outImg, win, cv::Scalar(0,255,0), 2);
+
         for (auto &p : nonzero) {
             if (win.contains(p)) {
                 lane_points.push_back(p);
@@ -194,12 +307,6 @@ cv::Mat LaneDetector::processMask(const cv::Mat& bird_eye_view) {
     cv::cvtColor(bird_eye_view, hsv, cv::COLOR_BGR2HSV);
     cv::inRange(hsv, cv::Scalar(0, 0, 200), cv::Scalar(180, 40, 255), mask);
     return mask;
-}
-
-std::vector<std::vector<cv::Point>> LaneDetector::findContoursInMask(const cv::Mat& mask) {
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-    return contours;
 }
 
 cv::Vec3f LaneDetector::fitPoly(const std::vector<cv::Point>& points, cv::Mat& outImg, bool isLeft) {
@@ -248,13 +355,10 @@ cv::Vec3f LaneDetector::fitPoly(const std::vector<cv::Point>& points, cv::Mat& o
     return coeff_out;
 }
 
-std::vector<cv::Point> LaneDetector::computeCenterline(
-    cv::Vec3f coeff_left,
-    cv::Vec3f coeff_right,
-    bool has_left,
-    bool has_right,
-    cv::Mat& outImg)
-{
+std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left,
+                                            cv::Vec3f coeff_right,
+                                            bool has_left, bool has_right,
+                                            cv::Mat& outImg) {
     std::vector<cv::Point> centerline;
     if (outImg.empty()) return centerline;
 
@@ -318,17 +422,16 @@ std::vector<cv::Point> LaneDetector::computeCenterline(
     else
         cv::putText(outImg, "NO LANE", {30, 80}, cv::FONT_HERSHEY_SIMPLEX, 1.0, {0, 0, 255}, 2);
 
-    return centerline;  
+    return centerline; 
 }
 
 float LaneDetector::computeLaneSlope(const cv::Vec3f& coeffs, float y) {
     float a = coeffs[0];
     float b = coeffs[1];
-    float c = coeffs[2];
 
     if (std::fabs(a) > 1e-6) {
-        return 2*a*y + b; 
+        return 2*a*y + b;
     } else {
-        return b;         
+        return b;
     }
 }
