@@ -82,10 +82,10 @@ cv::Mat LaneDetector::getMask() const{
     return mask;
 }
 void LaneDetector::processFrame(cv::Mat& frame_resize) {
-    bird_eye_view_ = applyIPM(frame_resize);
-    mask = processMask(bird_eye_view_);
+    bird_eye_view = applyIPM(frame_resize);
+    mask = processMask(bird_eye_view);
 
-    int minpix=30;
+    static int minpix=30;
     std::vector<cv::Point> left_points, right_points;
     cv::Vec3f left_coeffs(0,0,0), right_coeffs(0,0,0);
     bool left_ok = false, right_ok = false;
@@ -108,77 +108,18 @@ void LaneDetector::processFrame(cv::Mat& frame_resize) {
     if (change_lane) {                
         minpix = 5;
     }
+    else minpix =30;
+
     // ===== Tính centerline =====
-    computeCenterline(left_coeffs, right_coeffs,
+    centerline = computeCenterline(left_coeffs, right_coeffs,
                     left_ok, right_ok,
                     bird_eye_view);
     
-    has_valid_lane_ = (centerline_.size() >= 3);
+    has_valid_lane_ = (centerline.size() >= 3);
 
     // Display information
     displayInfo(frame_resize, left_ok, right_ok);
     
-}
-
-void LaneDetector::displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok) {
-    cv::Rect textBox(10, 10, 400, 180);
-    cv::rectangle(frame_resize, textBox, cv::Scalar(0, 0, 0), -1);
-    cv::rectangle(frame_resize, textBox, cv::Scalar(0, 255, 255), 2);
-
-    if (has_mpc_data_) {
-        std::string text_curv = "Curvature: " + 
-            std::to_string(display_curvature_) + " (1/m)";
-        cv::putText(frame_resize, text_curv, 
-                   cv::Point(20, 35), 
-                   cv::FONT_HERSHEY_SIMPLEX, 
-                   0.5, cv::Scalar(0, 255, 255), 1);
-
-        std::string text_lat = "Offset: " + 
-            std::to_string(display_lateral_dev_) + " (m)";
-        cv::putText(frame_resize, text_lat, 
-                   cv::Point(20, 60), 
-                   cv::FONT_HERSHEY_SIMPLEX, 
-                   0.5, cv::Scalar(0, 255, 255), 1);
-
-        float yaw_degree = display_yaw_angle_ * 180.0f / M_PI;
-        std::string text_yaw = "Angle_y: " + std::to_string(yaw_degree) + " (deg)";
-        cv::putText(frame_resize, text_yaw, 
-                   cv::Point(20, 85), 
-                   cv::FONT_HERSHEY_SIMPLEX, 
-                   0.5, cv::Scalar(0, 255, 255), 1);
-        
-        if (has_steering_info_) {
-            std::string text_cmd = "Steering CMD: " + 
-                std::to_string(current_steering_cmd_) + " (deg)";
-            cv::putText(frame_resize, text_cmd, 
-                       cv::Point(20, 110), 
-                       cv::FONT_HERSHEY_SIMPLEX, 
-                       0.5, cv::Scalar(255, 128, 0), 1);
-            
-            std::string text_servo = "Servo Angle: " + 
-                std::to_string(current_servo_angle_);
-            cv::putText(frame_resize, text_servo, 
-                       cv::Point(20, 135), 
-                       cv::FONT_HERSHEY_SIMPLEX, 
-                       0.5, cv::Scalar(255, 128, 0), 1);
-        }
-    } else {
-        cv::putText(frame_resize, "MPC: INVALID", 
-                   cv::Point(20, 60), 
-                   cv::FONT_HERSHEY_SIMPLEX, 
-                   0.5, cv::Scalar(0, 0, 255), 1);
-    }
-
-    std::string status = "Status: ";
-    if (left_ok && right_ok) status += "Both Lanes";
-    else if (left_ok) status += "Left Only";
-    else if (right_ok) status += "Right Only";
-    else status += "No Lane";
-    
-    cv::putText(frame_resize, status, 
-               cv::Point(20, 160), 
-               cv::FONT_HERSHEY_SIMPLEX, 
-               0.5, cv::Scalar(0, 255, 0), 1);
 }
 
 cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {

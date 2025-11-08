@@ -12,14 +12,14 @@ public:
     void FrameResize(const cv::Mat& frame);
     cv::Mat getFrameResize();
     cv::Mat getMask() const;
-    cv::Mat getBirdEyeView() const { return bird_eye_view_; }
+    cv::Mat getBirdEyeView() const { return bird_eye_view; }
 
     bool getFrame(cv::Mat& frame_resize);
     bool isOpened() const;
     void processFrame(cv::Mat& frame_resize);
     
     // Getters for MPC computation
-    std::vector<cv::Point> getCenterline() const { return centerline_; }
+    std::vector<cv::Point> getCenterline() const { return centerline; }
     bool hasValidLane() const { return has_valid_lane_; }
     
     // Setter for display
@@ -54,8 +54,8 @@ private:
     bool has_mpc_data_;
     
     // Lane detection results
-    std::vector<cv::Point> centerline_;
-    cv::Mat bird_eye_view_;
+    std::vector<cv::Point> centerline;
+    cv::Mat bird_eye_view;
     bool has_valid_lane_;
     
     // Lane detection methods
@@ -84,7 +84,7 @@ private:
     
     float computeLaneSlope(const cv::Vec3f& coeffs, float y);
     
-    void displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok);
+    // void displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok);
 };
 
 #endif
