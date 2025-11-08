@@ -22,7 +22,7 @@ void bindToCore(int core_id) {
 Logic::Logic(const std::string& videoPath)
     : detector(videoPath, 640, 480), 
       comm("/dev/ttyACM0", 115200),  
-      udp_send("192.168.1.108", 9996),
+      udp_send("192.168.1.106", 9996),
       logger("Curvature.txt"),
       //udp_send1("192.168.1.103",9997),
       logger1("steering.txt"),
@@ -48,7 +48,8 @@ void Logic::run() {
 
         while (running.load()) {
             if (!detector.getFrame(frame)) {  
-                std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		//std::cout << ",,,ds.d" << std::endl; 
                 continue;
             }
 
@@ -76,11 +77,12 @@ void Logic::run() {
 
     // ---- MPC thread ----
     std::thread mpc_thread([&]() {
-        bindToCore(1); 
+        bindToCore(0); 
         cv::Mat frame_local;
         auto last_send = std::chrono::steady_clock::now();
         while (running.load()) {
             {
+		//std::cout << "Mpc hoat dong" << std::endl;
                 std::lock_guard<std::mutex> lock(frame_mutex);
                 if (!latest_frame.empty()) {
                     frame_local = latest_frame;
@@ -104,7 +106,7 @@ void Logic::run() {
 
             if(!bev.empty()){
                 //GUI Bird_eye_view 
-                udp_send.sendFrame(bev,70);
+                udp_send.sendFrame(bev,60);
                 std::this_thread::sleep_for(std::chrono::milliseconds(40));
             }
             /*if(!bev1.empty()){
@@ -116,8 +118,13 @@ void Logic::run() {
             if(std::chrono::duration_cast<std::chrono::milliseconds>(now-last_send).count() >= 10){
                 last_send = now;
                 if (state.is_valid) {
+		//std::cout << "bien state hoat dong" << std::endl;
                 float steering = mpc.computeSteeringAngle(state, desired_velocity);
-                //logger1.log("Steering",steering);
+                if(steering<0.0f){
+                    steering = steering+3.0f;
+                }
+		//std::cout << "Gia tri goc lai" << steering << std::endl;
+                logger1.log("Steering",steering);
                 //logger1.log("Lateral_Dev",state.lateral_deviation);
                 //logger2.log("Yaw_Angle",state.yaw_angle);
                 //logger.log("Curvature",state.curvature[0]);

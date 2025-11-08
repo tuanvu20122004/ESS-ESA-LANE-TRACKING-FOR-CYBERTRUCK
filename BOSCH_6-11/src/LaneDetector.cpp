@@ -88,38 +88,60 @@ void LaneDetector::processFrame(cv::Mat& frame_resize) {
     static int minpix=30;
     std::vector<cv::Point> left_points, right_points;
     cv::Vec3f left_coeffs(0,0,0), right_coeffs(0,0,0);
+    static cv::Vec3f prev_left(0,0,0), prev_right(0,0,0);
     bool left_ok = false, right_ok = false;
 
-    slidingWindow(mask, left_points, right_points, bird_eye_view, minpix);
-    left_ok  = (left_points.size()  >= 80);
-    right_ok = (right_points.size() >= 80);
+    if (!initialized) {
+        slidingWindow(mask, left_points, right_points, bird_eye_view, minpix);
+        left_ok  = (left_points.size()  >= 80);
+        right_ok = (right_points.size() >= 80);
 
-    if (left_ok) {
-        left_coeffs = fitPoly(left_points, bird_eye_view, true);
-    }
-    bool change_lane = false;
-    if (right_ok) {
-        right_coeffs = fitPoly(right_points, bird_eye_view, false);
-        int mid_y = bird_eye_view.rows;
+        if (left_ok)  left_coeffs  = fitPoly(left_points, bird_eye_view, true);
+        if (right_ok) right_coeffs = fitPoly(right_points, bird_eye_view, false);
+
+        if (left_ok && right_ok) {
+            initialized = true;
+            prev_left = left_coeffs;
+            prev_right = right_coeffs;
+            std::cout << "Lane initialized" << std::endl;
+        }
+    } 
+    else {
+        slidingWindowAdaptive(mask, left_points, bird_eye_view, prev_left);
+        slidingWindowAdaptive(mask, right_points, bird_eye_view, prev_right);
+
+        if (left_points.size() >= 60) {
+            left_ok = true;
+            left_coeffs = fitPoly(left_points, bird_eye_view, true);
+        } else {
+            left_ok = false;
+            left_coeffs = prev_left;
+        }
+        if (right_points.size() >= 60) {    
+            right_ok = true;
+            right_coeffs = fitPoly(right_points, bird_eye_view, false);
+        } else {
+            right_ok = false;
+            right_coeffs = prev_right;
+        }
+
+        int mid_y = bird_eye_view.rows / 2;
         float slope_right = computeLaneSlope(right_coeffs, mid_y);
-        float slope_threshold = 0.2f;
-        change_lane = (std::abs(slope_right) > slope_threshold);
-    }
-    if (change_lane) {                
-        minpix = 5;
-    }
-    else minpix =30;
+        float slope_left  = computeLaneSlope(left_coeffs, mid_y);
+        bool change_lane = (std::fabs(slope_right) > 0.25f) || (std::fabs(slope_left) > 0.25f);
 
-    // ===== Tính centerline =====
-    centerline = computeCenterline(left_coeffs, right_coeffs,
-                    left_ok, right_ok,
-                    bird_eye_view);
-    
+        if (change_lane) {
+            std::cout << "Change lane detected - reinitialize!" << std::endl;
+            initialized = false;  
+            return;              
+        }
+
+        prev_left = left_coeffs;
+        prev_right = right_coeffs;
+    }
+
+    centerline = computeCenterline(left_coeffs, right_coeffs, left_ok, right_ok, bird_eye_view);
     has_valid_lane_ = (centerline.size() >= 3);
-
-    // Display information
-    displayInfo(frame_resize, left_ok, right_ok);
-    
 }
 
 cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
@@ -130,10 +152,10 @@ cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
     cv::Point2f bl(32.0f   + offsetX, height - 140);
     cv::Point2f tr(width * 0.85f - offsetX, height * 0.65f + offsetY);
     cv::Point2f br(width  - offsetX, height - 140);
-
+    
     std::vector<cv::Point2f> src_points = { tl, bl, tr, br };
 
-    for (size_t i = 0; i < src_points.size(); i++) {
+    for (int i = 0; i < src_points.size(); i++) {
         cv::circle(frame, src_points[i], 5, cv::Scalar(0, 255, 0), -1);
     }
 
@@ -145,8 +167,7 @@ cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
     };
 
     cv::Mat M = cv::getPerspectiveTransform(src_points, dst_points);
-    cv::Mat bird_eye_view;
-    cv::warpPerspective(frame, bird_eye_view, M, cv::Size(width, height));
+    cv::warpPerspective(frame_resize, bird_eye_view, M, cv::Size(width, height));
     return bird_eye_view;
 }
 
@@ -304,7 +325,7 @@ std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left,
     if (outImg.empty()) return centerline;
 
     const float LANE_WIDTH_PX = 310.0f;
-    static float laneW_avg = LANE_WIDTH_PX;  
+    float laneW_avg = LANE_WIDTH_PX;  
 
     auto evalX = [](cv::Vec3f c, float y) {
         return c[0] * y * y + c[1] * y + c[2];

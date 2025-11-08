@@ -37,16 +37,16 @@ public:
         has_mpc_data_ = true;
     }
 
-private:
+private:                                    
     cv::VideoCapture cap;
     cv::Mat frame, frame_resize;
-    int width;
+    int width;                                         
     int height;
-    
-    // Display data
-    float current_steering_cmd_;
+    bool initialized = false;                                                                                                                                                                                                                                                                                    
+    // Display data             
+    float current_steering_cmd_;                                          
     int current_servo_angle_;
-    bool has_steering_info_;
+    bool has_steering_info_;               
     
     float display_curvature_;
     float display_lateral_dev_;
@@ -84,7 +84,7 @@ private:
     
     float computeLaneSlope(const cv::Vec3f& coeffs, float y);
     
-    // void displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok);
+    //void displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok);
 };
 
 #endif
