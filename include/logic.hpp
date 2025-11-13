@@ -29,7 +29,7 @@ private:
     MpcState       mpc_state;
     Logger         logger2; 
     //VELOCITY 
-    const float desired_velocity = 0.1f;
+    const float desired_velocity = 0.13f;
 
     //SAFETY AND FRAME
     std::atomic<bool> running{true};

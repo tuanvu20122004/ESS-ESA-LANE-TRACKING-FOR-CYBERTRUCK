@@ -82,59 +82,87 @@ cv::Mat LaneDetector::getMask() const{
     return mask;
 }
 void LaneDetector::processFrame(cv::Mat& frame_resize) {
+    // ======== 1️Bird-eye & mask =========
     bird_eye_view_ = applyIPM(frame_resize);
     mask = processMask(bird_eye_view_);
 
     std::vector<cv::Point> left_points, right_points;
-    cv::Vec3f left_coeffs(0,0,0), right_coeffs(0,0,0);
+    cv::Vec3f left_coeffs(0, 0, 0), right_coeffs(0, 0, 0);
     bool left_ok = false, right_ok = false;
 
+    // ======== 2️Phát hiện lane =========
     slidingWindow(mask, left_points, right_points, bird_eye_view_);
-    left_ok  = (left_points.size()  >= 80);
-    right_ok = (right_points.size() >= 80);
 
-    cv::Vec3f temp_right_coeffs(0,0,0);
-    if (right_ok) {
-        if (left_ok) {
-            left_coeffs  = fitPoly(left_points, bird_eye_view_, true);
+    left_ok  = (left_points.size()  >= 120);
+    right_ok = (right_points.size() >= 120);
+
+    if (left_ok)  left_coeffs  = fitPoly(left_points, bird_eye_view_, true);
+    if (right_ok) right_coeffs = fitPoly(right_points, bird_eye_view_, false);
+
+    // ======== 3️Tạo đường trung tâm theo tình huống =========
+    std::vector<cv::Point> centerline;
+    float lane_offset_px = (31.0f / 0.02f) / 2.0f; // 31cm ~ 1750px (tùy calib)
+
+    if (left_ok && right_ok) {
+        // Có 2 làn → lấy trung bình
+        centerline = computeCenterline(left_coeffs, right_coeffs, true, true, bird_eye_view_);
+    } 
+    else if (right_ok && !left_ok) {
+        // Chỉ có làn phải → dịch sang trái
+        std::vector<cv::Point> center_pts;
+        for (int y = 0; y < bird_eye_view_.rows; y += 10) {
+            float xr = right_coeffs[0]*y*y + right_coeffs[1]*y + right_coeffs[2];
+            float slope = 2*right_coeffs[0]*y + right_coeffs[1];
+            float theta = std::atan(slope);
+            float x_center = xr - std::cos(theta - CV_PI/2) * lane_offset_px;
+            int ix = std::clamp((int)std::round(x_center), 0, bird_eye_view_.cols-1);
+            center_pts.push_back({ix, y});
         }
-        temp_right_coeffs = fitPoly(right_points, bird_eye_view_, false);
-        right_coeffs = temp_right_coeffs; 
-    }
-
-    bool change_lane = false;
-    if (right_ok) {
-        int mid_y = bird_eye_view_.rows;
-        float slope_right = computeLaneSlope(right_coeffs, mid_y);
-        float slope_threshold = 0.3f;
-        change_lane = (std::abs(slope_right) > slope_threshold);
-    }
-
-    if (change_lane) {                
-        right_points.clear();
-        slidingWindowAdaptive(mask, right_points, bird_eye_view_, temp_right_coeffs); 
-        right_ok = (right_points.size() >= 80);
-        if (right_ok) {
-            right_coeffs  = fitPoly(right_points, bird_eye_view_, false);
-        } else {
-            right_coeffs = cv::Vec3f(0,0,0);
+        centerline = center_pts;
+    } 
+    else if (left_ok && !right_ok) {
+        // Chỉ có làn trái → dịch sang phải
+        std::vector<cv::Point> center_pts;
+        for (int y = 0; y < bird_eye_view_.rows; y += 10) {
+            float xl = left_coeffs[0]*y*y + left_coeffs[1]*y + left_coeffs[2];
+            float slope = 2*left_coeffs[0]*y + left_coeffs[1];
+            float theta = std::atan(slope);
+            float x_center = xl + std::cos(theta + CV_PI/2) * lane_offset_px;
+            int ix = std::clamp((int)std::round(x_center), 0, bird_eye_view_.cols-1);
+            center_pts.push_back({ix, y});
         }
-        left_ok = false;
-        left_coeffs = cv::Vec3f(0,0,0);
+        centerline = center_pts;
+    } 
+    else {
+        // Không có làn nào
+        has_valid_lane_ = false;
+        //displayInfo(frame_resize, false, false);
+        return;
     }
 
-    centerline_ = computeCenterline(left_coeffs, right_coeffs,
-                                    left_ok, right_ok,
-                                    bird_eye_view_);
-    
+    // ======== 4 Xử lý đặc biệt khúc cong =========
+    if (left_ok && right_ok) {
+        float y_eval = bird_eye_view_.rows;
+        float slope_left = computeLaneSlope(left_coeffs, y_eval);
+        float slope_right = computeLaneSlope(right_coeffs, y_eval);
+        float diff = std::fabs(slope_left - slope_right);
+        if (diff > 0.5f) {
+            // Hai làn lệch mạnh nhau -> chỉ giữ làn tốt hơn
+            if (std::fabs(slope_right) < std::fabs(slope_left))
+                left_ok = false;
+            else
+                right_ok = false;
+        }
+    }
+
+    // ======== 5️Cập nhật dữ liệu lane =========
+    centerline_ = centerline;
     has_valid_lane_ = (centerline_.size() >= 3);
 
-    // Display information
-    displayInfo(frame_resize, left_ok, right_ok);
-    
+    // ======== 6️Hiển thị overlay =========
+    //displayInfo(frame_resize, left_ok, right_ok);
 }
-
-void LaneDetector::displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok) {
+/*void LaneDetector::displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok) {
     cv::Rect textBox(10, 10, 400, 180);
     cv::rectangle(frame_resize, textBox, cv::Scalar(0, 0, 0), -1);
     cv::rectangle(frame_resize, textBox, cv::Scalar(0, 255, 255), 2);
@@ -193,7 +221,7 @@ void LaneDetector::displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_o
                cv::Point(20, 160), 
                cv::FONT_HERSHEY_SIMPLEX, 
                0.5, cv::Scalar(0, 255, 0), 1);
-}
+}*/
 
 cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
     float offsetY = -70.0f;
@@ -223,7 +251,7 @@ cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
     return bird_eye_view;
 }
 
-void LaneDetector::slidingWindow(const cv::Mat& mask,
+/*void LaneDetector::slidingWindow(const cv::Mat& mask,
                        std::vector<cv::Point>& left_points,
                        std::vector<cv::Point>& right_points,
                        cv::Mat& outImg) {
@@ -279,6 +307,122 @@ void LaneDetector::slidingWindow(const cv::Mat& mask,
             rightx_current = sumx / (int)good_right.size();
         }
     }
+}*/
+void LaneDetector::slidingWindow(const cv::Mat& mask,
+                                 std::vector<cv::Point>& left_points,
+                                 std::vector<cv::Point>& right_points,
+                                 cv::Mat& outImg) {
+    // ==== Tham số (tinh chỉnh theo dữ liệu thực) ====
+    const int nwindows   = 15;
+    const int margin     = 50;   // hẹp hơn để giảm chồng lấn
+    const int minpix     = 50;   // số điểm tối thiểu để dời tâm mỗi cửa sổ
+    const int peak_points_per_col = 40; // ngưỡng đỉnh histogram (điểm/ cột)
+    const float min_sep_after_fit = 120.f; // (dùng ở bước sau-fit nếu muốn)
+
+    left_points.clear();
+    right_points.clear();
+    if (mask.empty()) return;
+
+    const int H = mask.rows;
+    const int W = mask.cols;
+    const int win_h = std::max(1, H / nwindows);
+    const int midx = W / 2;
+
+    // ==== 1) Histogram nửa dưới ảnh: tìm đỉnh trái/phải ====
+    cv::Mat hist; // 1 x W, kiểu CV_32S
+    cv::reduce(mask(cv::Rect(0, H/2, W, H/2)), hist, 0, cv::REDUCE_SUM, CV_32S);
+
+    cv::Mat leftHist  = hist.colRange(0, midx);
+    cv::Mat rightHist = hist.colRange(midx, W);
+
+    double lMax = 0, rMax = 0;
+    cv::Point lLoc, rLoc;
+    cv::minMaxLoc(leftHist,  nullptr, &lMax, nullptr, &lLoc);
+    cv::minMaxLoc(rightHist, nullptr, &rMax, nullptr, &rLoc);
+
+    // mỗi pixel mask = 255 -> quy đổi sang số điểm/ cột
+    const double PEAK_THR = 255.0 * peak_points_per_col;
+
+    bool track_left  = (lMax >= PEAK_THR);
+    bool track_right = (rMax >= PEAK_THR);
+
+    int leftx_current  = track_left  ? lLoc.x          : -1;
+    int rightx_current = track_right ? (midx + rLoc.x) : -1;
+
+    // Ràng buộc vùng hợp lệ của tâm cửa sổ theo nửa ảnh
+    auto clamp_left_x  = [&](int x){ return std::clamp(x, margin,            midx - 1 - margin); };
+    auto clamp_right_x = [&](int x){ return std::clamp(x, midx + margin,     W - 1 - margin);   };
+
+    if (track_left)  leftx_current  = clamp_left_x(leftx_current);
+    if (track_right) rightx_current = clamp_right_x(rightx_current);
+
+    // Lấy tất cả điểm khác 0 để quét nhanh theo cửa sổ
+    std::vector<cv::Point> nz;
+    cv::findNonZero(mask, nz);
+
+    // ==== 2) Cửa sổ trượt từ dưới lên ====
+    for (int w = 0; w < nwindows; ++w) {
+        const int y_low  = H - (w + 1) * win_h;
+        const int y_high = H - w * win_h;
+
+        cv::Rect left_win, right_win;
+        bool haveL = false, haveR = false;
+
+        if (track_left) {
+            left_win = cv::Rect(leftx_current - margin, y_low, margin * 2, win_h);
+            left_win &= cv::Rect(0, 0, W, H);
+            haveL = (left_win.area() > 0);
+        }
+        if (track_right) {
+            right_win = cv::Rect(rightx_current - margin, y_low, margin * 2, win_h);
+            right_win &= cv::Rect(0, 0, W, H);
+            haveR = (right_win.area() > 0);
+        }
+
+        std::vector<cv::Point> good_left, good_right;
+
+        // ==== Nhặt điểm với "độc quyền" (không để điểm rơi vào cả hai bên) ====
+        for (const auto& p : nz) {
+            if (p.y < y_low || p.y >= y_high) continue;
+
+            bool inL = haveL && left_win.contains(p);
+            bool inR = haveR && right_win.contains(p);
+
+            if (inL && !inR) {
+                good_left.push_back(p);
+            } else if (!inL && inR) {
+                good_right.push_back(p);
+            } else if (inL && inR) {
+                // gán cho cửa sổ có tâm gần hơn theo trục x
+                int dl = std::abs(p.x - leftx_current);
+                int dr = std::abs(p.x - rightx_current);
+                (dl <= dr ? good_left : good_right).push_back(p);
+            }
+        }
+
+        // ==== Vẽ debug cửa sổ (tuỳ chọn) ====
+        if (haveL && !good_left.empty())
+            cv::rectangle(outImg, left_win,  cv::Scalar(128,128,128), 1); // xám để không nhầm với lane
+        if (haveR && !good_right.empty())
+            cv::rectangle(outImg, right_win, cv::Scalar(128,128,128), 1);
+
+        // ==== Gom điểm ====
+        left_points.insert(left_points.end(),   good_left.begin(),  good_left.end());
+        right_points.insert(right_points.end(), good_right.begin(), good_right.end());
+
+        // ==== Dời tâm theo trung bình x nếu đủ minpix ====
+        if (haveL && static_cast<int>(good_left.size()) > minpix) {
+            int sumx = 0; for (auto &p : good_left) sumx += p.x;
+            leftx_current = clamp_left_x(sumx / static_cast<int>(good_left.size()));
+        }
+        if (haveR && static_cast<int>(good_right.size()) > minpix) {
+            int sumx = 0; for (auto &p : good_right) sumx += p.x;
+            rightx_current = clamp_right_x(sumx / static_cast<int>(good_right.size()));
+        }
+    }
+
+    // (Tuỳ chọn) Bạn có thể thêm bước "lọc hậu-fit" ngay tại đây sau khi fitPoly,
+    // kiểm tra khoảng cách trung vị giữa 2 đa thức và loại bỏ 1 bên nếu quá sát.
 }
 
 void LaneDetector::slidingWindowAdaptive(const cv::Mat& mask,
@@ -370,7 +514,7 @@ cv::Vec3f LaneDetector::fitPoly(const std::vector<cv::Point>& points, cv::Mat& o
     return coeff_out;
 }
 
-std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left,
+/*std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left,
                                             cv::Vec3f coeff_right,
                                             bool has_left, bool has_right,
                                             cv::Mat& outImg) {
@@ -392,6 +536,7 @@ std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left,
         std::nth_element(widths.begin(), widths.begin()+widths.size()/2, widths.end());
         float median_w = widths[widths.size()/2];
         laneW_avg = (1-alpha)*laneW_avg + alpha*median_w;
+        std::cout << "[LaneDetector] Lane width updated: " << laneW_avg*cm_per_px << " cm\n";
     }
 
     for (int y=0; y<outImg.rows; y+=10) {
@@ -408,6 +553,86 @@ std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left,
         centerline.push_back({x,y});
         cv::circle(outImg,{x,y},2,{255,255,0},-1);
     }
+    return centerline;
+}*/
+std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left,
+                                            cv::Vec3f coeff_right,
+                                            bool has_left, bool has_right,
+                                            cv::Mat& outImg) {
+    std::vector<cv::Point> centerline;
+    if (outImg.empty()) return centerline;
+
+    // ====== 1Thông số calib ======
+    float cm_per_px = 0.02f;                // 1 pixel ≈ 2cm (tùy camera, cần calib lại)
+    float laneW_nominal = 31.0f / cm_per_px; // 35cm ~ 1750px
+    static float laneW_avg = laneW_nominal;
+    const float alpha = 0.2f;               // hệ số cập nhật mượt (EMA)
+
+    // ====== 2️Hàm nội suy vị trí x từ y ======
+    auto evalX = [](cv::Vec3f c, float y) {
+        return c[0] * y * y + c[1] * y + c[2];
+    };
+
+    // ====== 3️Cập nhật độ rộng làn trung bình (nếu có đủ 2 làn) ======
+    if (has_left && has_right) {
+        std::vector<float> widths;
+        for (int y = 0; y < outImg.rows; y += 20)
+            widths.push_back(std::fabs(evalX(coeff_right, y) - evalX(coeff_left, y)));
+
+        if (!widths.empty()) {
+            std::nth_element(widths.begin(), widths.begin() + widths.size() / 2, widths.end());
+            float median_w = widths[widths.size() / 2];
+            laneW_avg = (1 - alpha) * laneW_avg + alpha * median_w;
+            if(laneW_avg < 0.95f * laneW_nominal || laneW_avg > 1.05f * laneW_nominal) {
+                laneW_avg = laneW_nominal; // tránh sai số lớn
+            }
+            std::cout << "[LaneDetector] Lane width updated: " 
+                      << laneW_avg * cm_per_px << " cm\n";
+        }
+    }
+
+    // ====== 4️Tính centerline ======
+    for (int y = 0; y < outImg.rows; y += 10) {
+        float xc = -1.0f;
+
+        if (has_left && has_right) {
+            // Hai làn: lấy trung bình
+            xc = 0.5f * (evalX(coeff_left, y) + evalX(coeff_right, y));
+        } 
+        else if (has_left) {
+            // Chỉ làn trái: dịch theo pháp tuyến sang phải
+            float x_left = evalX(coeff_left, y);
+            float slope = 2 * coeff_left[0] * y + coeff_left[1];
+            float theta = std::atan(slope);
+            // Offset động dựa trên độ cong
+            float curvature_factor = std::clamp(std::fabs(2 * coeff_left[0]), 0.0001f, 0.002f);
+            float dynamic_offset = (laneW_avg * 0.6f) / (1.0f + 150.0f * curvature_factor);
+
+            xc = x_left + std::cos(theta + CV_PI / 2) * dynamic_offset;
+            //xc = x_left + std::cos(theta + CV_PI / 2) * (laneW_avg * 0.5f);
+        } 
+        else if (has_right) {
+            // Chỉ làn phải: dịch theo pháp tuyến sang trái
+            float x_right = evalX(coeff_right, y);
+            float slope = 2 * coeff_right[0] * y + coeff_right[1];
+            float theta = std::atan(slope);
+            // Offset động dựa trên độ cong
+            float curvature_factor = std::clamp(std::fabs(2 * coeff_right[0]), 0.0001f, 0.002f);
+            float dynamic_offset = (laneW_avg * 0.6f) / (1.0f + 150.0f * curvature_factor);
+
+            xc = x_right - std::cos(theta - CV_PI / 2) * dynamic_offset;
+            //xc = x_right - std::cos(theta - CV_PI / 2) * (laneW_avg * 0.5f);
+        } 
+        else {
+            continue;
+        }
+
+        int x = std::clamp(static_cast<int>(std::round(xc)), 0, outImg.cols - 1);
+        centerline.push_back({x, y});
+
+        cv::circle(outImg, {x, y}, 2, {255, 255, 0}, -1);
+    }
+
     return centerline;
 }
 

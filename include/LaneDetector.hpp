@@ -84,7 +84,7 @@ private:
     
     float computeLaneSlope(const cv::Vec3f& coeffs, float y);
     
-    void displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok);
+    //void displayInfo(cv::Mat& frame_resize, bool left_ok, bool right_ok);
 };
 
 #endif

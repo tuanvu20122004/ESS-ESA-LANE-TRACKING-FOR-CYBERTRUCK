@@ -68,7 +68,7 @@ void MpcController::init(float Q1_weight, float Q2_weight, float R_weight) {
     Q2_ = Q2_weight;
     R_ = R_weight;
 
-    buildMpcMatrices(0.3f);
+    buildMpcMatrices(0.13f);
 
     if (!solver_) solver_ = std::make_unique<OsqpEigen::Solver>();
     solver_->settings()->setVerbosity(false);
