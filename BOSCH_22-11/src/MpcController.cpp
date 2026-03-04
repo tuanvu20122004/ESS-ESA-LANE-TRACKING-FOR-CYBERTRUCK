@@ -114,19 +114,19 @@ void MpcController::buildMpcMatrices(float Vx) {
     int n = 4;  // State dimension
     int m = 1;  // Control input dimension
 
-    AX_ = Eigen::MatrixXd::Zero((N_ + 1) * n, n);
+    AX_ = Eigen::MatrixXd::Zero((N_ + 1) * n, n);    // G
     for (int i = 0; i <= N_; ++i) {
         AX_.block(i * n, 0, n, n) = matrixPower(A_d_, i);
     }
 
-    BU_ = Eigen::MatrixXd::Zero((N_ + 1) * n, N_ * m);
+    BU_ = Eigen::MatrixXd::Zero((N_ + 1) * n, N_ * m);  // H
     for (int i = 1; i <= N_; ++i) {
         for (int j = 0; j < i; ++j) {
             BU_.block(i * n, j * m, n, m) = matrixPower(A_d_, i - j - 1) * B1_d_;
         }
     }
 
-    BV_ = Eigen::MatrixXd::Zero((N_ + 1) * n, N_ * m);
+    BV_ = Eigen::MatrixXd::Zero((N_ + 1) * n, N_ * m);   // E
     for (int i = 1; i <= N_; ++i) {
         for (int j = 0; j < i; ++j) {
             BV_.block(i * n, j * m, n, m) = matrixPower(A_d_, i - j - 1) * B2_d_;
@@ -347,10 +347,9 @@ std::vector<float> MpcController::computeMultipleCurvatures(const cv::Vec3f& coe
         
         float kappa_pixel = (denominator > 1e-6f) ? (numerator / denominator) : 0.0f;
         float kappa_meter = kappa_pixel / pixel_per_meter_;
-        
+        // càn giơi hạn lại độ cong tối đa
         curvatures.push_back(kappa_meter);
     }
-    
     return curvatures;
 }
 

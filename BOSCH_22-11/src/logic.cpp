@@ -105,7 +105,7 @@ void Logic::run() {
             auto now = std::chrono::steady_clock::now();
             double proc_time = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_send).count();
 
-            if(std::chrono::duration_cast<std::chrono::milliseconds>(now-last_send).count() >= 130)
+            if(std::chrono::duration_cast<std::chrono::milliseconds>(now-last_send).count() >= 100)
             {
                 last_send = now;
                 if (state.is_valid) 
