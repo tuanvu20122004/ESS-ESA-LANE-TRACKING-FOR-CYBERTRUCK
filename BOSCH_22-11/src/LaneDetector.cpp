@@ -1,7 +1,7 @@
 #include "LaneDetector.hpp"
 #include <algorithm>
 #include <iostream>
-int test;
+
 
 static bool try_open_gst(cv::VideoCapture& cap, const std::string& pipeline) {
     std::cout << "[CAMERA] Try pipeline:\n" << pipeline << "\n";
