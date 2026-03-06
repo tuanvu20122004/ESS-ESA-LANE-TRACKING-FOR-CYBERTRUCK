@@ -4,6 +4,18 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
+enum class LaneChangeDirection {
+    NONE = 0,
+    LEFT = 1,
+    RIGHT = 2,
+    BOTH = 3
+};
+enum class LaneLineType {
+    UNKNOWN = 0,
+    SOLID,
+    DASHED
+};
+
 class LaneDetector {
 public:
     LaneDetector(const std::string& videoPath, int width = 640, int height = 480);
