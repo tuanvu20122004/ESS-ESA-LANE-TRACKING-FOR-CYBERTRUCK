@@ -25,6 +25,8 @@ public:
     cv::Mat getFrameResize();
     cv::Mat getMask() const;
     cv::Mat getBirdEyeView() const { return bird_eye_view; }
+    LaneLineType left_type;
+    LaneLineType right_type;
 
     bool getFrame(cv::Mat& frame_resize);
     bool isOpened() const;

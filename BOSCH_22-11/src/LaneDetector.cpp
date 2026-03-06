@@ -110,36 +110,35 @@ void LaneDetector::processFrame(cv::Mat& frame_resize) {
         if (left_ok)  left_coeffs  = fitPoly(left_points, bird_eye_view, true);
         if (right_ok) right_coeffs = fitPoly(right_points, bird_eye_view, false);
         // ta có thể check lane nào là đứt ở đây
-        LaneLineType result;
 
         if (has_left) {
-            result.left_type = classifyLaneMarking(mask, coeff_left);
-            switch (result)
+            left_type = classifyLaneMarking(mask, coeff_left);
+            switch (left_type)
             {
             case SOLID:
-            std::cout << "LEFTLINE: SOLID" << endl;
+            std::cout << "LEFTLINE: SOLID" << std::endl;
                 break;
             case DASHED:
-            std::cout << "LEFTLINE: DASHED" << endl;
+            std::cout << "LEFTLINE: DASHED" << std::endl;
                 break;
             default:
-            std::cout << "LEFTLINE: UNKNOWN" << endl;
+            std::cout << "LEFTLINE: UNKNOWN" << std::endl;
                 break;
             }
         }
 
         if (has_right) {
-            result.right_type = classifyLaneMarking(mask, coeff_right);
-            switch (result)
+            right_type = classifyLaneMarking(mask, coeff_right);
+            switch (right_type)
             {
             case SOLID:
-            std::cout << "RIGHTLINE: SOLID" << endl;
+            std::cout << "RIGHTLINE: SOLID" << std::endl;
                 break;
             case DASHED:
-            std::cout << "RIGHTLINE: DASHED" << endl;
+            std::cout << "RIGHTLINE: DASHED" << std::endl;
                 break;
             default:
-            std::cout << "RIGHTLINE: UNKNOWN" << endl;
+            std::cout << "RIGHTLINE: UNKNOWN" << std::endl;
                 break;
             }
         }
@@ -523,7 +522,7 @@ LaneLineType classifyLaneMarking(const cv::Mat& mask,
         return LaneLineType::UNKNOWN;
     }
 
-    static float evalLaneX(const cv::Vec3f& c, float y) {
+    auto evalLaneX(const cv::Vec3f& c, float y) {
         return c[0] * y * y + c[1] * y + c[2];
     }
 
