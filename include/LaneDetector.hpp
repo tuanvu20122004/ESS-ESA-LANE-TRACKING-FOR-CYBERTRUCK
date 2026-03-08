@@ -12,14 +12,14 @@ public:
     void FrameResize(const cv::Mat& frame);
     cv::Mat getFrameResize();
     cv::Mat getMask() const;
-    cv::Mat getBirdEyeView() const { return bird_eye_view_; }
+    cv::Mat getBirdEyeView() const { return bird_eye_view; }
 
     bool getFrame(cv::Mat& frame_resize);
     bool isOpened() const;
     void processFrame(cv::Mat& frame_resize);
     
     // Getters for MPC computation
-    std::vector<cv::Point> getCenterline() const { return centerline_; }
+    std::vector<cv::Point> getCenterline() const { return centerline; }
     bool hasValidLane() const { return has_valid_lane_; }
     
     // Setter for display
@@ -37,16 +37,16 @@ public:
         has_mpc_data_ = true;
     }
 
-private:
+private:                                    
     cv::VideoCapture cap;
     cv::Mat frame, frame_resize;
-    int width;
+    int width;                                         
     int height;
-    
-    // Display data
-    float current_steering_cmd_;
+    bool initialized = false;                                                                                                                                                                                                                                                                                    
+    // Display data             
+    float current_steering_cmd_;                                          
     int current_servo_angle_;
-    bool has_steering_info_;
+    bool has_steering_info_;               
     
     float display_curvature_;
     float display_lateral_dev_;
@@ -54,8 +54,8 @@ private:
     bool has_mpc_data_;
     
     // Lane detection results
-    std::vector<cv::Point> centerline_;
-    cv::Mat bird_eye_view_;
+    std::vector<cv::Point> centerline;
+    cv::Mat bird_eye_view;
     bool has_valid_lane_;
     
     // Lane detection methods
@@ -65,7 +65,7 @@ private:
     void slidingWindow(const cv::Mat& mask,
                       std::vector<cv::Point>& left_points,
                       std::vector<cv::Point>& right_points,
-                      cv::Mat& outImg);
+                      cv::Mat& outImg, int minpix);
     
     void slidingWindowAdaptive(const cv::Mat& mask,
                               std::vector<cv::Point>& lane_points,
