@@ -40,7 +40,7 @@ DistanceDetector::DistanceDetector(const std::string& modelPath,
     real_heights_ = {
         {"person", 1.70f},
         {"bottle", 0.25f},
-        {"car", 0.10f},
+        {"car", 0.185f},
         {"cell phone", 0.14f},
         {"book", 0.24f},
         {"laptop", 0.22f},

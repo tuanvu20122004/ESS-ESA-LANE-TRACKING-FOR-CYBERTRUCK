@@ -15,9 +15,9 @@ public:
                      float focalLength,
                      int inputWidth = 640,
                      int inputHeight = 640,
-                     float confThreshold = 0.25f,
-                     float scoreThreshold = 0.25f,
-                     float nmsThreshold = 0.45f);
+                     float confThreshold = 0.2f,
+                     float scoreThreshold = 0.2f,
+                     float nmsThreshold = 0.2f);
 
     void detectAndDraw(cv::Mat& frame);
 
