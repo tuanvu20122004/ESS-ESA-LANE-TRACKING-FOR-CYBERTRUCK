@@ -129,6 +129,30 @@ hihi/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/build
 .PHONY : hihi/fast
 
+src/DistanceDetector.o: src/DistanceDetector.cpp.o
+.PHONY : src/DistanceDetector.o
+
+# target to build an object file
+src/DistanceDetector.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/DistanceDetector.cpp.o
+.PHONY : src/DistanceDetector.cpp.o
+
+src/DistanceDetector.i: src/DistanceDetector.cpp.i
+.PHONY : src/DistanceDetector.i
+
+# target to preprocess a source file
+src/DistanceDetector.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/DistanceDetector.cpp.i
+.PHONY : src/DistanceDetector.cpp.i
+
+src/DistanceDetector.s: src/DistanceDetector.cpp.s
+.PHONY : src/DistanceDetector.s
+
+# target to generate assembly for a file
+src/DistanceDetector.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hihi.dir/build.make CMakeFiles/hihi.dir/src/DistanceDetector.cpp.s
+.PHONY : src/DistanceDetector.cpp.s
+
 src/LaneDetector.o: src/LaneDetector.cpp.o
 .PHONY : src/LaneDetector.o
 
@@ -306,6 +330,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... hihi"
+	@echo "... src/DistanceDetector.o"
+	@echo "... src/DistanceDetector.i"
+	@echo "... src/DistanceDetector.s"
 	@echo "... src/LaneDetector.o"
 	@echo "... src/LaneDetector.i"
 	@echo "... src/LaneDetector.s"

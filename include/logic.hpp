@@ -6,7 +6,7 @@
 #include "communication.hpp"
 #include "logger.hpp"
 #include "Trans_UDP.hpp"
-
+#include "DistanceDetector.hpp"
 #include <opencv2/opencv.hpp>
 #include <atomic>
 #include <mutex>
@@ -23,11 +23,12 @@ private:
     MpcController  mpc; 
     Communication  comm;  
     Trans_UDP      udp_send; 
+    DistanceDetector distance_detector;
     //Trans_UDP      udp_send1; 
-    Logger         logger; 
-    Logger         logger1;
+    //Logger         logger; 
+    //Logger         logger1;
     MpcState       mpc_state;
-    Logger         logger2; 
+    //Logger         logger2; 
     //VELOCITY 
     const float desired_velocity = 0.04f;
 

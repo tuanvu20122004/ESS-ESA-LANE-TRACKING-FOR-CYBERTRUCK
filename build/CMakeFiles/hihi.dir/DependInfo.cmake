@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/tuandevvtx/Documents/MpcControl/src/DistanceDetector.cpp" "CMakeFiles/hihi.dir/src/DistanceDetector.cpp.o" "gcc" "CMakeFiles/hihi.dir/src/DistanceDetector.cpp.o.d"
   "/home/tuandevvtx/Documents/MpcControl/src/LaneDetector.cpp" "CMakeFiles/hihi.dir/src/LaneDetector.cpp.o" "gcc" "CMakeFiles/hihi.dir/src/LaneDetector.cpp.o.d"
   "/home/tuandevvtx/Documents/MpcControl/src/MpcController.cpp" "CMakeFiles/hihi.dir/src/MpcController.cpp.o" "gcc" "CMakeFiles/hihi.dir/src/MpcController.cpp.o.d"
   "/home/tuandevvtx/Documents/MpcControl/src/Trans_UDP.cpp" "CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o" "gcc" "CMakeFiles/hihi.dir/src/Trans_UDP.cpp.o.d"

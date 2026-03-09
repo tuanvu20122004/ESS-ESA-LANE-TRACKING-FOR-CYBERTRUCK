@@ -13,6 +13,12 @@
 },
 {
   "directory": "/home/tuandevvtx/Documents/MpcControl/build",
+  "command": "/usr/bin/g++ -DOSQP_EIGEN_OSQP_IS_V1 -DOSQP_EIGEN_OSQP_IS_V1_FINAL -DOSQP_SHARED_LIB -I/home/tuandevvtx/Documents/MpcControl/include -isystem /usr/include/opencv4 -isystem /usr/include/eigen3 -isystem /usr/local/include/osqp -g -std=gnu++17 -o CMakeFiles/hihi.dir/src/DistanceDetector.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/DistanceDetector.cpp",
+  "file": "/home/tuandevvtx/Documents/MpcControl/src/DistanceDetector.cpp",
+  "output": "CMakeFiles/hihi.dir/src/DistanceDetector.cpp.o"
+},
+{
+  "directory": "/home/tuandevvtx/Documents/MpcControl/build",
   "command": "/usr/bin/g++ -DOSQP_EIGEN_OSQP_IS_V1 -DOSQP_EIGEN_OSQP_IS_V1_FINAL -DOSQP_SHARED_LIB -I/home/tuandevvtx/Documents/MpcControl/include -isystem /usr/include/opencv4 -isystem /usr/include/eigen3 -isystem /usr/local/include/osqp -g -std=gnu++17 -o CMakeFiles/hihi.dir/src/MpcController.cpp.o -c /home/tuandevvtx/Documents/MpcControl/src/MpcController.cpp",
   "file": "/home/tuandevvtx/Documents/MpcControl/src/MpcController.cpp",
   "output": "CMakeFiles/hihi.dir/src/MpcController.cpp.o"

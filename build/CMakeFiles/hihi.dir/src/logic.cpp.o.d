@@ -676,6 +676,7 @@ CMakeFiles/hihi.dir/src/logic.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
- /usr/include/linux/close_range.h /usr/include/c++/13/thread \
- /usr/include/c++/13/bits/std_thread.h \
+ /usr/include/linux/close_range.h \
+ /home/tuandevvtx/Documents/MpcControl/include/DistanceDetector.hpp \
+ /usr/include/c++/13/thread /usr/include/c++/13/bits/std_thread.h \
  /usr/include/c++/13/bits/this_thread_sleep.h
