@@ -1,7 +1,7 @@
 #include "LaneDetector.hpp"
 #include <algorithm>
 #include <iostream>
-
+int test;
 
 static bool try_open_gst(cv::VideoCapture& cap, const std::string& pipeline) {
     std::cout << "[CAMERA] Try pipeline:\n" << pipeline << "\n";
@@ -54,7 +54,6 @@ LaneDetector::~LaneDetector() {
     cv::destroyAllWindows();
 }
 
-#if 0
 bool LaneDetector::getFrame(cv::Mat& frame) {
     cap >> frame;
     cv::Mat undistorted;
@@ -71,61 +70,6 @@ bool LaneDetector::getFrame(cv::Mat& frame) {
 
     cv::resize(frame, frame_resize, cv::Size(width, height));
     return !frame.empty();
-}
-#endif
-bool LaneDetector::getFrame(cv::Mat& frame_resize) {
-    cv::Mat raw;
-    cap >> raw;
-    if (raw.empty()) return false;
-
-    if (!undistort_ready) {
-        initCameraCalibration();
-        initUndistortMap(raw.size());
-    }
-
-    cv::Mat undistorted = undistortFrame(raw);
-    cv::resize(undistorted, frame_resize, cv::Size(width, height));
-
-    this->frame = raw.clone();
-    this->frame_resize = frame_resize.clone();
-
-    return !frame_resize.empty();
-}
-
-void LaneDetector::initCameraCalibration() {
-    cameraMatrix = (cv::Mat_<double>(3, 3) <<
-        262.08953333143063, 0.0, 330.77574325128484,
-        0.0, 263.57901348164575, 250.50298224489268,
-        0.0, 0.0, 1.0);
-
-    distCoeffs = (cv::Mat_<double>(1, 5) <<
-        -0.27166331922859776, 0.09924985737514846,
-        -0.0002707688044880526, 0.0006724194580262318,
-        -0.01935517123682299);
-}
-
-void LaneDetector::initUndistortMap(const cv::Size& imageSize) {
-    newCameraMatrix = cv::getOptimalNewCameraMatrix(
-        cameraMatrix, distCoeffs, imageSize, 0.4, imageSize, &valid_roi);
-
-    cv::initUndistortRectifyMap(
-        cameraMatrix, distCoeffs, cv::Mat(), newCameraMatrix,
-        imageSize, CV_16SC2, map1, map2);
-
-    undistort_ready = true;
-}
-cv::Mat LaneDetector::undistortFrame(const cv::Mat& input) {
-    cv::Mat output;
-    cv::remap(input, output, map1, map2, cv::INTER_LINEAR);
-
-    if (valid_roi.width > 0 && valid_roi.height > 0 &&
-        valid_roi.x >= 0 && valid_roi.y >= 0 &&
-        valid_roi.x + valid_roi.width <= output.cols &&
-        valid_roi.y + valid_roi.height <= output.rows) {
-        output = output(valid_roi);
-    }
-
-    return output;
 }
 
 bool LaneDetector::isOpened() const {
@@ -335,6 +279,7 @@ void LaneDetector::processFrame(cv::Mat& frame_resize) {
     }
 
 }
+
 
 
 cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
@@ -567,6 +512,7 @@ std::vector<cv::Point> LaneDetector::computeCenterline(cv::Vec3f coeff_left,
             cv::circle(outImg, {x, y}, 2, {255, 255, 0}, -1);
 	}
     }
+    std::cout << "Lane Width Average: " << current_laneW << "px" << std::endl;
 
     // ==== Debug hiển thị ==== 
     std::string dbg_text = "W=" + std::to_string((int)laneW_avg) + "px";
@@ -595,7 +541,6 @@ float LaneDetector::computeLaneSlope(const cv::Vec3f& coeffs, float y) {
         return b;
     }
 }
-
 
 
 LaneLineType LaneDetector::classifyLaneMarking(const cv::Mat& mask,

@@ -22,7 +22,7 @@ void bindToCore(int core_id) {
 Logic::Logic(const std::string& videoPath)
     : detector(videoPath, 640, 480), 
       comm("/dev/ttyACM0", 115200),  
-      udp_send("192.168.1.103", 9996),
+      udp_send("192.168.1.100", 9996),
       //logger("Curvature.txt"),
       //udp_send1("192.168.1.103",9997),
     //   logger1("steering.txt"),
@@ -95,6 +95,7 @@ void Logic::run() {
             cv::Mat frame_display = frame_local.clone();
             cv::Mat frame_lane    = frame_local.clone();
             // Detect vật thể và vẽ khoảng cách lên frame gốc
+            
             distance_detector.detectAndDraw(frame_display);
 
             // Lane detection dùng frame sạch
@@ -107,7 +108,7 @@ void Logic::run() {
 
             // Gửi ảnh detect vật thể về server
             if (!frame_display.empty()) {
-                udp_send.sendFrame(frame_display, 60);
+                udp_send.sendFrame(birdEyeView, 80);
                 std::this_thread::sleep_for(std::chrono::milliseconds(40));
             }
 
