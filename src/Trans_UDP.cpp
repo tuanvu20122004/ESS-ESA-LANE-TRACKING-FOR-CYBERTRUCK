@@ -1,62 +1,85 @@
 #include "Trans_UDP.hpp"
 #include <iostream>
 #include <vector>
-#include <arpa/inet.h>
-#include <unistd.h>
+#include <cstring>
+#include <cstdlib>
+#include <sys/socket.h>
 
-Trans_UDP::Trans_UDP(const std::string& server_ip, int port, size_t buffer_size)
-    : server_ip_(server_ip), port_(port), sock_(-1), buffer_size_(buffer_size)
+Trans_UDP::Trans_UDP(const std::string& server_ip, int port)
+    : server_ip_(server_ip), port_(port), sock_(-1), recv_sock_(-1)
 {
     initSocket();
+
+    // ===== Tạo socket nhận khoảng cách =====
+    recv_sock_ = socket(AF_INET, SOCK_DGRAM, 0);
+    if (recv_sock_ < 0)
+    {
+        std::cerr << "Create UDP receiver socket failed\n";
+        return;
+    }
+
+    std::memset(&recv_addr_, 0, sizeof(recv_addr_));
+    recv_addr_.sin_family = AF_INET;
+    recv_addr_.sin_addr.s_addr = INADDR_ANY;
+    recv_addr_.sin_port = htons(8888);   // Pi nhận distance ở port 8888
+
+    int opt = 1;
+    setsockopt(recv_sock_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    if (bind(recv_sock_, reinterpret_cast<sockaddr*>(&recv_addr_), sizeof(recv_addr_)) < 0)
+    {
+        std::cerr << "Bind UDP receiver failed at port 8888\n";
+    }
+    else
+    {
+        std::cout << "UDP distance receiver ready at port 8888\n";
+    }
 }
 
-Trans_UDP::~Trans_UDP() {
+Trans_UDP::~Trans_UDP()
+{
     closeSocket();
 }
 
-bool Trans_UDP::initSocket() {
+bool Trans_UDP::initSocket()
+{
     sock_ = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock_ < 0) {
-        std::cerr << "Khong tao duoc socket UDP\n";
+        std::cerr << "Không tạo được socket UDP\n";
         return false;
     }
 
-    // Cau hinh dia chi server de gui frame
-    std::memset(&server_addr_, 0, sizeof(server_addr_));
     server_addr_.sin_family = AF_INET;
     server_addr_.sin_port = htons(port_);
-    inet_pton(AF_INET, server_ip_.c_str(), &server_addr_.sin_addr);
 
-    // Bind local port de co the nhan distance
-    std::memset(&local_addr_, 0, sizeof(local_addr_));
-    local_addr_.sin_family = AF_INET;
-    local_addr_.sin_port = htons(port_);
-    local_addr_.sin_addr.s_addr = INADDR_ANY;
-
-    if (bind(sock_, reinterpret_cast<sockaddr*>(&local_addr_), sizeof(local_addr_)) < 0) {
-        std::cerr << "Bind that bai tren cong " << port_ << "\n";
-        close(sock_);
-        sock_ = -1;
+    if (inet_pton(AF_INET, server_ip_.c_str(), &server_addr_.sin_addr) <= 0)
+    {
+        std::cerr << "IP server khong hop le: " << server_ip_ << std::endl;
         return false;
     }
 
-    std::cout << "UDP socket da khoi tao (send -> "
-              << server_ip_ << ":" << port_
-              << ", recv <- 0.0.0.0:" << port_ << ")\n";
-
+    std::cout << "Socket UDP đã khởi tạo (→ " 
+              << server_ip_ << ":" << port_ << ")\n";
     return true;
 }
 
 
-void Trans_UDP::sendFrame(const cv::Mat& frame, int quality) {
+void Trans_UDP::sendFrame(const cv::Mat& frame, int quality)
+{
     if (sock_ < 0 || frame.empty()) return;
 
     std::vector<uchar> buf;
-    std::vector<int> params = { cv::IMWRITE_JPEG_QUALITY, quality };
-    cv::imencode(".jpg", frame, buf, params);
+    std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, quality};
 
-    sendto(sock_, buf.data(), buf.size(), 0,
-           reinterpret_cast<sockaddr*>(&server_addr_), sizeof(server_addr_));
+    if (!cv::imencode(".jpg", frame, buf, params))
+        return;
+
+    sendto(sock_,
+           buf.data(),
+           buf.size(),
+           0,
+           reinterpret_cast<sockaddr*>(&server_addr_),
+           sizeof(server_addr_));
 }
 
 bool Trans_UDP::receiveDistance() {
@@ -111,9 +134,41 @@ const std::deque<float>& Trans_UDP::getBuffer() const {
 }
 
 
-void Trans_UDP::closeSocket() {
-    if (sock_ > 0) {
-        close(sock_);
+void Trans_UDP::receiveDistance()
+{
+    if (recv_sock_ < 0) return;
+
+    char buffer[64] = {0};
+
+    int n = recvfrom(recv_sock_,
+                     buffer,
+                     sizeof(buffer) - 1,
+                     MSG_DONTWAIT,
+                     NULL,
+                     NULL);
+
+    if (n > 0)
+    {
+        buffer[n] = '\0';
+
+        float d = std::atof(buffer);
+        distance_.store(d);
     }
+}
+
+float Trans_UDP::getDistance() const
+{
+    return distance_.load();
+}
+
+void Trans_UDP::closeSocket()
+{
+    if (sock_ >= 0)
+        close(sock_);
+
+    if (recv_sock_ >= 0)
+        close(recv_sock_);
+
     sock_ = -1;
+    recv_sock_ = -1;
 }
