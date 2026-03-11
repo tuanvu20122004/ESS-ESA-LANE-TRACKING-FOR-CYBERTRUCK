@@ -5,6 +5,7 @@
 #include <string>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <atomic>
 
 class Trans_UDP {
 public:
@@ -13,13 +14,26 @@ public:
 
     bool initSocket();
     void sendFrame(const cv::Mat& frame, int quality = 80);
+
+    // Nhận khoảng cách từ laptop
+    void receiveDistance();
+    float getDistance() const;
+
     void closeSocket();
 
 private:
     std::string server_ip_;
     int port_;
+
+    // socket gửi frame
     int sock_;
     sockaddr_in server_addr_;
+
+    // socket nhận distance
+    int recv_sock_;
+    sockaddr_in recv_addr_;
+
+    std::atomic<float> distance_{100.0f};
 };
 
-#endif // TRANS_UDP_HPP
+#endif
