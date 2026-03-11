@@ -6,7 +6,6 @@
 #include "communication.hpp"
 #include "logger.hpp"
 #include "Trans_UDP.hpp"
-
 #include <opencv2/opencv.hpp>
 #include <atomic>
 #include <mutex>
@@ -24,10 +23,9 @@ private:
     Communication  comm;  
     Trans_UDP      udp_send; 
     //Trans_UDP      udp_send1; 
-    Logger         logger; 
-    Logger         logger1;
-    MpcState       mpc_state;
-    Logger         logger2; 
+    //Logger         logger; 
+    //Logger         logger1;
+    //Logger         logger2; 
     //VELOCITY 
     const float desired_velocity = 0.04f;
 

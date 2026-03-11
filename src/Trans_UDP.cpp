@@ -44,11 +44,14 @@ Trans_UDP::~Trans_UDP()
 bool Trans_UDP::initSocket()
 {
     sock_ = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock_ < 0) {
-        std::cerr << "Không tạo được socket UDP\n";
+
+    if (sock_ < 0)
+    {
+        std::cerr << "Khong tao duoc socket UDP sender\n";
         return false;
     }
 
+    std::memset(&server_addr_, 0, sizeof(server_addr_));
     server_addr_.sin_family = AF_INET;
     server_addr_.sin_port = htons(port_);
 
@@ -58,11 +61,11 @@ bool Trans_UDP::initSocket()
         return false;
     }
 
-    std::cout << "Socket UDP đã khởi tạo (→ " 
-              << server_ip_ << ":" << port_ << ")\n";
+    std::cout << "UDP sender ready -> "
+              << server_ip_ << ":" << port_ << std::endl;
+
     return true;
 }
-
 
 void Trans_UDP::sendFrame(const cv::Mat& frame, int quality)
 {
@@ -81,58 +84,6 @@ void Trans_UDP::sendFrame(const cv::Mat& frame, int quality)
            reinterpret_cast<sockaddr*>(&server_addr_),
            sizeof(server_addr_));
 }
-
-bool Trans_UDP::receiveDistance() {
-    if (sock_ < 0) return false;
-
-    float distance = -1.0f;
-    sockaddr_in sender_addr{};
-    socklen_t sender_len = sizeof(sender_addr);
-
-    ssize_t len = recvfrom(sock_,
-                           &distance,
-                           sizeof(distance),
-                           MSG_DONTWAIT,
-                           reinterpret_cast<sockaddr*>(&sender_addr),
-                           &sender_len);
-
-    if (len < 0) {
-        return false; // khong co data
-    }
-
-    if (len != sizeof(float)) {
-        std::cerr << "Nhan sai kich thuoc goi tin distance: " << len << " bytes\n";
-        return false;
-    }
-
-    distance_buffer_.push_back(distance);
-
-    if (distance_buffer_.size() > buffer_size_) {
-        distance_buffer_.pop_front();
-    }
-
-    return true;
-}
-
-float Trans_UDP::getLatestDistance() const {
-    if (distance_buffer_.empty()) return -1.0f;
-    return distance_buffer_.back();
-}
-
-float Trans_UDP::getAverageDistance() const {
-    if (distance_buffer_.empty()) return -1.0f;
-
-    float sum = 0.0f;
-    for (float d : distance_buffer_) {
-        sum += d;
-    }
-    return sum / static_cast<float>(distance_buffer_.size());
-}
-
-const std::deque<float>& Trans_UDP::getBuffer() const {
-    return distance_buffer_;
-}
-
 
 void Trans_UDP::receiveDistance()
 {

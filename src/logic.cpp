@@ -24,7 +24,7 @@ void bindToCore(int core_id)
 Logic::Logic(const std::string& videoPath)
     : detector(videoPath, 640, 480),
       comm("/dev/ttyACM0", 115200),
-      udp_send("192.168.1.102", 9996)
+      udp_send("192.168.1.113", 9996)
 {
     mpc.init(1000.0f, 50.0f, 5.0f);
     mpc.debugMatrices();
@@ -95,18 +95,7 @@ void Logic::run()
                 continue;
             }
 
-            // Tách 2 nhánh:
-            // 1) frame_display: để detect vật thể + vẽ bbox + gửi UDP
-            // 2) frame_lane: để xử lý lane, không bị nhiễu bởi bbox/text
-            cv::Mat frame_display = frame_local.clone();
-            cv::Mat frame_lane    = frame_local.clone();
-            // Detect vật thể và vẽ khoảng cách lên frame gốc
-            
-            //distance_detector.detectAndDraw(frame_display);
-
-            // Lane detection dùng frame sạch
-            detector.processFrame(frame_lane);
-
+            detector.processFrame(frame_local);
             std::vector<cv::Point> centerline = detector.getCenterline();
             cv::Mat birdEyeView = detector.getBirdEyeView();
             MpcState state = mpc.computeMpcParameters(centerline, birdEyeView);
@@ -118,6 +107,9 @@ void Logic::run()
                 std::this_thread::sleep_for(std::chrono::milliseconds(40));
             }
 
+            // Nhận khoảng cách từ laptop
+            udp_send.receiveDistance();
+            float distance = udp_send.getDistance();
 
             auto now = std::chrono::steady_clock::now();
 
@@ -140,7 +132,7 @@ void Logic::run()
                     // chỉ dừng khi có distance hợp lệ và nhỏ hơn ngưỡng
                     float velocity_cmd = desired_velocity;
 
-                    if (distance > 0.0f && distance < safety_distance)
+                    if (distance > 0.0f && distance < 12.0f)
                     {
                         velocity_cmd = 0.0f;
                     }

@@ -70,6 +70,7 @@ bool LaneDetector::getFrame(cv::Mat& frame) {
 
     cv::resize(frame, frame_resize, cv::Size(width, height));
     return !frame.empty();
+    
 }
 
 bool LaneDetector::isOpened() const {
@@ -286,8 +287,8 @@ cv::Mat LaneDetector::applyIPM(cv::Mat& frame) {
     float offsetY = -70.0f;
     float offsetX = 100.0f;
 
-    cv::Point2f tl(width * 0.20f + offsetX, height * 0.65f + offsetY);
-    cv::Point2f bl(32.0f   + offsetX, height - 140);
+    cv::Point2f tl(width * 0.20f + offsetX - 20, height * 0.65f + offsetY);
+    cv::Point2f bl(32.0f   + offsetX - 20, height - 140);
     cv::Point2f tr(width * 0.85f - offsetX, height * 0.65f + offsetY);
     cv::Point2f br(width  - offsetX, height - 140);
     
