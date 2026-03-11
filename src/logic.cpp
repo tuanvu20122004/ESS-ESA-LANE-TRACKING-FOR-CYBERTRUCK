@@ -96,7 +96,7 @@ void Logic::run() {
             cv::Mat frame_lane    = frame_local.clone();
             // Detect vật thể và vẽ khoảng cách lên frame gốc
             
-            distance_detector.detectAndDraw(frame_display);
+            //distance_detector.detectAndDraw(frame_display);
 
             // Lane detection dùng frame sạch
             detector.processFrame(frame_lane);
@@ -112,7 +112,10 @@ void Logic::run() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(40));
             }
 
-
+            if (udp.receiveDistance()) {
+            std::cout << "Latest distance: " << udp.getLatestDistance() << " m\n";
+            std::cout << "Average distance: " << udp.getAverageDistance() << " m\n";
+    }
             auto now = std::chrono::steady_clock::now();
             double proc_time = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_send).count();
 
