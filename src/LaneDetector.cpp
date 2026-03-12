@@ -1,7 +1,7 @@
 #include "LaneDetector.hpp"
 #include <algorithm>
 #include <iostream>
-int test;
+
 
 static bool try_open_gst(cv::VideoCapture& cap, const std::string& pipeline) {
     std::cout << "[CAMERA] Try pipeline:\n" << pipeline << "\n";
@@ -22,22 +22,22 @@ LaneDetector::LaneDetector(const std::string& videoPath, int width, int height)
 
     if (videoPath.find("/dev/") != std::string::npos) {
 	// Chỉ dùng libcamera + videoscale
-        const std::string p0 =
-            "libcamerasrc ! "
-            "video/x-raw, width=" + std::to_string(CAP_W) +
-            ", height=" + std::to_string(CAP_H) +
-            ", framerate=" + std::to_string(FPS) + "/1 ! "
-            "videoconvert ! videoscale ! "
-            "video/x-raw, format=(string)BGR, width=" + std::to_string(OUT_W) +
-            ", height=" + std::to_string(OUT_H) + " ! "
-            "appsink max-buffers=1 drop=true sync=false";
+    const std::string p0 =
+        "libcamerasrc ! "
+        "video/x-raw, width=" + std::to_string(CAP_W) +
+        ", height=" + std::to_string(CAP_H) +
+        ", framerate=" + std::to_string(FPS) + "/1 ! "
+        "videoconvert ! videoscale ! "
+        "video/x-raw, format=(string)BGR, width=" + std::to_string(OUT_W) +
+        ", height=" + std::to_string(OUT_H) + " ! "
+        "appsink max-buffers=1 drop=true sync=false";
 
-        const std::string p1 =
-            "libcamerasrc ! "
-            "videoconvert ! videoscale ! "
-            "video/x-raw, format=(string)BGR, width=" + std::to_string(OUT_W) +
-            ", height=" + std::to_string(OUT_H) + " ! "
-            "appsink max-buffers=1 drop=true sync=false";
+    const std::string p1 =
+        "libcamerasrc ! "
+        "videoconvert ! videoscale ! "
+        "video/x-raw, format=(string)BGR, width=" + std::to_string(OUT_W) +
+        ", height=" + std::to_string(OUT_H) + " ! "
+        "appsink max-buffers=1 drop=true sync=false";
 
         if (!try_open_gst(cap, p0) && !try_open_gst(cap, p1)) {
             throw std::runtime_error("Cannot open camera with libcamerasrc: " + videoPath);
@@ -56,6 +56,14 @@ LaneDetector::~LaneDetector() {
 
 bool LaneDetector::getFrame(cv::Mat& frame) {
     cap >> frame;
+
+    static int saved_raw = 0;
+    if (saved_raw == 0) {
+    cv::imwrite("pi_raw.jpg", frame);
+    std::cout << "Saved pi_raw.jpg" << std::endl;
+    saved_raw = 1;
+    }
+    
     cv::Mat undistorted;
     cv::Mat cameraMatrix = (cv::Mat_<double>(3,3) <<
         262.08953333143063, 0.0, 330.77574325128484,

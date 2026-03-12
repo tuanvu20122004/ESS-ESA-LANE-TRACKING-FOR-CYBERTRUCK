@@ -24,7 +24,7 @@ void bindToCore(int core_id)
 Logic::Logic(const std::string& videoPath)
     : detector(videoPath, 640, 480),
       comm("/dev/ttyACM0", 115200),
-      udp_send("192.168.1.113", 9996)
+      udp_send("192.168.1.108", 9996)
 {
     mpc.init(1000.0f, 50.0f, 5.0f);
     mpc.debugMatrices();
@@ -60,6 +60,13 @@ void Logic::run()
                 std::lock_guard<std::mutex> lock(frame_mutex);
                 latest_frame = detector.getFrameResize();
             }
+
+            if (!frame.empty())
+            {
+                udp_send.sendFrame(frame, 80);
+                std::this_thread::sleep_for(std::chrono::milliseconds(40));
+            }
+
 
             int key = cv::waitKey(1);
 
@@ -101,11 +108,11 @@ void Logic::run()
             MpcState state = mpc.computeMpcParameters(centerline, birdEyeView);
 
             // Gửi ảnh BEV sang laptop
-            if (!frame_local.empty())
-            {
-                udp_send.sendFrame(frame_local, 70);
-                std::this_thread::sleep_for(std::chrono::milliseconds(40));
-            }
+            // if (!frame_local.empty())
+            // {
+            //     udp_send.sendFrame(frame_local, 80);
+            //     std::this_thread::sleep_for(std::chrono::milliseconds(40));
+            // }
 
             // Nhận khoảng cách từ laptop
             udp_send.receiveDistance();

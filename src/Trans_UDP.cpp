@@ -74,6 +74,13 @@ void Trans_UDP::sendFrame(const cv::Mat& frame, int quality)
     std::vector<uchar> buf;
     std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, quality};
 
+    static int saved = 0;
+    if (saved == 0) {
+    cv::imwrite("pi_before_send.jpg", frame);
+    std::cout << "Saved pi_before_send.jpg" << std::endl;
+    saved = 1;
+    }
+
     if (!cv::imencode(".jpg", frame, buf, params))
         return;
 
